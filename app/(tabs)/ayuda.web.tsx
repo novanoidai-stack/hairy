@@ -172,7 +172,7 @@ export default function AyudaScreen() {
           <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', color: T.primary }}>
             Soporte & Formación
           </div>
-          <h1 style={{ margin: '4px 0 0', fontSize: isMobile ? 22 : 28, fontWeight: 800, letterSpacing: -0.5 }}>
+          <h1 style={{ margin: '4px 0 0', fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4 }}>
             Centro de Ayuda y Manuales
           </h1>
         </div>
@@ -272,7 +272,10 @@ export default function AyudaScreen() {
       </div>
 
       {/* ── Filtros de Categoría ── */}
+      <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10 }}>Explora por tema</div>
       <div
+        role="tablist"
+        aria-label="Temas de ayuda"
         style={{
           display: 'flex',
           gap: 8,
@@ -283,6 +286,9 @@ export default function AyudaScreen() {
         }}
       >
         <button
+          type="button"
+          role="tab"
+          aria-selected={catSel === 'todas'}
           data-demo-abrir="ayuda-manuales"
           onClick={() => setCatSel('todas')}
           style={{
@@ -303,6 +309,9 @@ export default function AyudaScreen() {
         {CATEGORIAS_MANUALES.map((c) => (
           <button
             key={c.id}
+            type="button"
+            role="tab"
+            aria-selected={catSel === c.id}
             onClick={() => setCatSel(c.id)}
             style={{
               padding: '8px 16px',
@@ -321,6 +330,9 @@ export default function AyudaScreen() {
         ))}
 
         <button
+          type="button"
+          role="tab"
+          aria-selected={catSel === 'faqs'}
           onClick={() => setCatSel('faqs')}
           style={{
             padding: '8px 16px',
@@ -338,6 +350,9 @@ export default function AyudaScreen() {
         </button>
 
         <button
+          type="button"
+          role="tab"
+          aria-selected={catSel === 'hub_ia'}
           data-demo-abrir="ia-hub"
           onClick={() => setCatSel('hub_ia')}
           style={{

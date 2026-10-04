@@ -1730,8 +1730,10 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
   // Cabecera estatica de seccion (siempre visible, parte superior de la tarjeta)
   const SectionHeader = ({ id, icon, iconColor, title, subtitle }: { id?: SeccionId; icon: string; iconColor: string; title: string; subtitle: string }) => (
     <div
+      id={id ? `informe-${id}` : undefined}
       style={{
         display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12, padding: isMobile ? '11px 13px' : '14px 18px',
+        scrollMarginTop: 68,
         borderRadius: '14px 14px 0 0', background: TOKENS.bgCard,
         border: `1px solid ${TOKENS.border}`, borderBottom: `1px solid ${TOKENS.border}`,
       }}
@@ -1779,15 +1781,20 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
         flexWrap: 'wrap', gap: isMobile ? 10 : 12,
       }}>
         <div>
+          <h1 style={{ margin: '0 0 10px', fontSize: isMobile ? 22 : 26, fontWeight: 700, letterSpacing: -0.4, color: TOKENS.text }}>Informes</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ display: 'flex', background: TOKENS.bgCard, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}` }}>
+            <div role="tablist" aria-label="Secciones de Informes" style={{ display: 'flex', background: TOKENS.bgCard, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}` }}>
               <button
+                role="tab"
+                aria-selected={viewMode === 'informes'}
                 onClick={() => setViewMode('informes')}
                 style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: viewMode === 'informes' ? 600 : 400, background: viewMode === 'informes' ? TOKENS.primary : 'transparent', color: viewMode === 'informes' ? '#fff' : TOKENS.textSec, transition: 'all 0.2s ease' }}
               >
                 Análisis Visual
               </button>
               <button
+                role="tab"
+                aria-selected={viewMode === 'registros'}
                 onClick={() => setViewMode('registros')}
                 style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: viewMode === 'registros' ? 600 : 400, background: viewMode === 'registros' ? TOKENS.primary : 'transparent', color: viewMode === 'registros' ? '#fff' : TOKENS.textSec, transition: 'all 0.2s ease' }}
               >
@@ -1945,10 +1952,24 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
           <>
             {viewMode === 'informes' && (
               <>
+                <nav aria-label="Ir a sección del análisis" style={{ position: 'sticky', top: 0, zIndex: 10, display: 'flex', gap: 6, overflowX: 'auto', padding: '8px 0 12px', marginBottom: 10, background: TOKENS.bg }}>
+                  {([
+                    ['informe-resumen', 'Resumen'],
+                    ['informe-evolucion', 'Evolución'],
+                    ['informe-ocupacion', 'Ocupación'],
+                    ['informe-ingresos', 'Ingresos'],
+                    ['informe-servicios', 'Servicios'],
+                    ['informe-retencion', 'Clientes'],
+                    ['informe-comisiones', 'Comisiones'],
+                  ] as const).map(([id, label]) => (
+                    <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      style={{ flexShrink: 0, padding: '8px 12px', borderRadius: 9, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCard, color: TOKENS.textSec, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                  ))}
+                </nav>
                 {/* ============================================================= */}
                 {/* 9.10: Dashboard KPIs                                          */}
             {/* ============================================================= */}
-            <div data-demo="informes-kpis" style={{ marginBottom: isMobile ? 14 : 24 }}>
+            <div id="informe-resumen" data-demo="informes-kpis" style={{ marginBottom: isMobile ? 14 : 24, scrollMarginTop: 68 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: TOKENS.textSec, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Rendimiento Global</div>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0,1fr) minmax(0,1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 8 : 14, marginBottom: 20 }}>
                 {[
@@ -2077,7 +2098,7 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
             {/* El recorrido de la demo se quedaba en los KPI y nunca bajaba a las
                 graficas, que es lo que de verdad convence: `informes-evolucion`
                 le da un objetivo al que hacer scroll. */}
-            <div data-demo="informes-evolucion" style={{ marginBottom: isMobile ? 10 : 14 }}>
+            <div id="informe-evolucion" data-demo="informes-evolucion" style={{ marginBottom: isMobile ? 10 : 14, scrollMarginTop: 68 }}>
               <SectionHeader icon="trendingUp" iconColor={TOKENS.success} title="Evolución temporal" subtitle={`${periodoLabel} · ${etiquetaGrano}${avisoRecorte}`} />
               <SectionBody>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 20 : 26 }}>

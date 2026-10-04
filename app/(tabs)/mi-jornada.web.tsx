@@ -913,16 +913,18 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           )}
         </div>
 
-        {isMobile && (
-          <div style={{ display: 'flex', background: T.bgCard, borderRadius: 12, padding: 4, marginBottom: 16, border: `1px solid ${T.border}`, boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+        {(
+          <div role="tablist" aria-label="Secciones de Mi jornada" style={{ display: 'flex', width: 'fit-content', maxWidth: '100%', overflowX: 'auto', background: T.bgCard, borderRadius: 12, padding: 4, marginBottom: 16, border: `1px solid ${T.border}`, boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
             <button
+              role="tab"
+              aria-selected={subTab === 'citas'}
               onClick={() => setSubTab('citas')}
               onMouseEnter={(e) => { if (subTab !== 'citas') e.currentTarget.style.background = T.primarySoft; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'citas' ? T.primary : 'transparent'; }}
               style={{
-                flex: 1,
+                flex: isMobile ? 1 : 'none',
                 minHeight: 44,
-                padding: '10px 4px',
+                padding: isMobile ? '10px 4px' : '10px 16px',
                 borderRadius: 8,
                 border: 'none',
                 background: subTab === 'citas' ? T.primary : 'transparent',
@@ -941,13 +943,15 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
               Citas
             </button>
             <button
+              role="tab"
+              aria-selected={subTab === 'numeros'}
               onClick={() => setSubTab('numeros')}
               onMouseEnter={(e) => { if (subTab !== 'numeros') e.currentTarget.style.background = T.primarySoft; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'numeros' ? T.primary : 'transparent'; }}
               style={{
-                flex: 1,
+                flex: isMobile ? 1 : 'none',
                 minHeight: 44,
-                padding: '10px 4px',
+                padding: isMobile ? '10px 4px' : '10px 16px',
                 borderRadius: 8,
                 border: 'none',
                 background: subTab === 'numeros' ? T.primary : 'transparent',
@@ -966,13 +970,15 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
               Mis números
             </button>
             <button
+              role="tab"
+              aria-selected={subTab === 'ausencias'}
               onClick={() => setSubTab('ausencias')}
               onMouseEnter={(e) => { if (subTab !== 'ausencias') e.currentTarget.style.background = T.primarySoft; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'ausencias' ? T.primary : 'transparent'; }}
               style={{
-                flex: 1,
+                flex: isMobile ? 1 : 'none',
                 minHeight: 44,
-                padding: '10px 4px',
+                padding: isMobile ? '10px 4px' : '10px 16px',
                 borderRadius: 8,
                 border: 'none',
                 background: subTab === 'ausencias' ? T.primary : 'transparent',
@@ -991,13 +997,15 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
               Bloqueos
             </button>
             <button
+              role="tab"
+              aria-selected={subTab === 'registro'}
               onClick={() => setSubTab('registro')}
               onMouseEnter={(e) => { if (subTab !== 'registro') e.currentTarget.style.background = T.primarySoft; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = subTab === 'registro' ? T.primary : 'transparent'; }}
               style={{
-                flex: 1,
+                flex: isMobile ? 1 : 'none',
                 minHeight: 44,
-                padding: '10px 4px',
+                padding: isMobile ? '10px 4px' : '10px 16px',
                 borderRadius: 8,
                 border: 'none',
                 background: subTab === 'registro' ? T.primary : 'transparent',
@@ -1018,7 +1026,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           </div>
         )}
 
-        {(!isMobile || subTab === 'numeros') && (
+        {subTab === 'numeros' && (
           <>
             <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, margin: '4px 2px 10px' }}>
               Tu actividad · {pLabel}
@@ -1059,7 +1067,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           </>
         )}
 
-        {(!isMobile || subTab === 'numeros') && misObjetivos.length > 0 && (
+        {subTab === 'numeros' && misObjetivos.length > 0 && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 2px 10px' }}>
               <Icon name="star" size={14} color={T.primaryHi} />
@@ -1094,7 +1102,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           </>
         )}
 
-        {(!isMobile || subTab === 'citas') && vinculado && (
+        {subTab === 'citas' && vinculado && (
           <>
             <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4, margin: '4px 2px 10px' }}>
               Citas completadas · {pLabel}
@@ -1207,7 +1215,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           </>
         )}
 
-        {(!isMobile || subTab === 'ausencias') && vinculado && (
+        {subTab === 'ausencias' && vinculado && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1253,7 +1261,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
           </>
         )}
 
-        {(!isMobile || subTab === 'ausencias') && (
+        {subTab === 'ausencias' && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', margin: '20px 2px 10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1322,7 +1330,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
         {/* Registro de jornada: la persona trabajadora tiene derecho a consultar
             y a obtener copia de sus propios asientos de forma inmediata
             (art. 34.9 ET). No depende de que se lo pida a nadie. */}
-        {(!isMobile || subTab === 'registro') && (
+        {subTab === 'registro' && (
           <div style={{ marginTop: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 2px 8px' }}>
               <Icon name="clock" size={14} color={T.primaryHi} />

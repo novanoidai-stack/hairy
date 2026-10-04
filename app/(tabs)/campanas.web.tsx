@@ -298,6 +298,12 @@ function CampanasScreen() {
           />
         )}
 
+        <div aria-label="Pasos para preparar la campaña" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '10px 12px', border: `1px solid ${T.border}`, borderRadius: 12, background: T.card }}>
+          {['1 · Nombre y canal', '2 · Destinatarias', '3 · Mensaje', '4 · Revisión y envío'].map((paso) => (
+            <span key={paso} style={{ padding: '6px 10px', borderRadius: 8, background: T.cardHi, color: T.textSec, fontSize: 12, fontWeight: 700 }}>{paso}</span>
+          ))}
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: dosColumnas ? 'minmax(0, 1.35fr) minmax(340px, 0.9fr)' : '1fr', gap: 16, alignItems: 'start' }}>
 
           {/* Columna de construccion */}
@@ -439,7 +445,7 @@ function Header({ onBack, isMobile, onManual }: { onBack: () => void; isMobile: 
       <button className="m-btn-icon" onClick={onBack} aria-label="Volver"
         style={{ width: 36, height: 36, borderRadius: 10, border: `1.5px solid ${T.border}`, background: T.panel, color: T.textSec, cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>‹</button>
       <div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: T.text, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.text, letterSpacing: -0.4, display: 'flex', alignItems: 'center', gap: 10 }}>
           Campañas
           {onManual && (
             <button className="m-btn-icon" onClick={onManual} title="Manual de esta pagina"
@@ -451,7 +457,7 @@ function Header({ onBack, isMobile, onManual }: { onBack: () => void; isMobile: 
               </svg>
             </button>
           )}
-        </div>
+        </h1>
         <div style={{ fontSize: 12.5, color: T.textTer }}>Reactiva clientas y difunde ofertas</div>
       </div>
     </div>

@@ -13,7 +13,7 @@ export const manualPresupuestos: ManualContent = {
     },
     {
       titulo: 'Crearlo escribiéndolo',
-      texto: 'En "Crear presupuesto rápido" describe lo que quieres ("presupuesto para María, balayage y corte") y pulsa "Crear": Chispa propone las líneas con los precios de tu catálogo y las abre en el editor para que las revises antes de guardar.',
+      texto: 'Pulsa "Crear con IA" para abrir "Crear presupuesto rápido". Describe lo que quieres ("presupuesto para María, balayage y corte") y pulsa "Crear": Chispa propone las líneas con los precios de tu catálogo y las abre en el editor para que las revises antes de guardar.',
     },
     {
       titulo: 'Enviarlo a la clienta',

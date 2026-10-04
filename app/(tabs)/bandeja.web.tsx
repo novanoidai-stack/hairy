@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getUserProfile } from '@/lib/auth';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { useResponsive } from '@/lib/hooks/useResponsive';
@@ -327,6 +327,9 @@ function DetalleModal({ conv, onClose, onEstadoCambiado }: {
 // ─────────────────────────────────────────────────────────────────────────────
 function BandejaScreen() {
   const { isMobile } = useResponsive();
+  const params = useLocalSearchParams<{ seccion?: string }>();
+  const [vistaBandeja, setVistaBandeja] = useState<'mensajes' | 'solicitudes'>(params.seccion === 'solicitudes' ? 'solicitudes' : 'mensajes');
+  useEffect(() => { setVistaBandeja(params.seccion === 'solicitudes' ? 'solicitudes' : 'mensajes'); }, [params.seccion]);
   const [showManualPanel, setShowManualPanel] = useState(false);
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -398,7 +401,7 @@ function BandejaScreen() {
       <style>{ANIM}</style>
       <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: isMobile ? '16px 14px 96px' : 24 }}>
         <div style={{ marginBottom: isMobile ? 14 : 20 }}>
-          <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.text, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 10 }}>
             <Icon name="mail" size={isMobile ? 22 : 26} color={T.primary} /> Bandeja
             {sinLeer > 0 && <span style={{ fontSize: 12.5, fontWeight: 700, color: '#fff', background: T.primary, borderRadius: 999, padding: '2px 9px' }}>{sinLeer}</span>}
             <button
@@ -415,7 +418,7 @@ function BandejaScreen() {
             </button>
             <AvisosBell mode="header" />
           </h1>
-          <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>Mensajes de clientes: rechazos y cambios de presupuestos, y contactos desde tu página pública.</p>
+          <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>Revisa solicitudes de ausencia y mensajes de clientes desde un mismo lugar.</p>
         </div>
 
         {!paginaManual.loading && !paginaManual.visto && (
@@ -431,21 +434,33 @@ function BandejaScreen() {
 
         {mensaje ? <div style={{ padding: '11px 15px', borderRadius: 10, marginBottom: 14, background: T.dangerSoft, color: T.danger, fontSize: 13.5 }}>{mensaje}</div> : null}
 
+        <div role="tablist" aria-label="Secciones de Bandeja" style={{ display: 'flex', gap: 4, width: 'fit-content', maxWidth: '100%', padding: 4, marginBottom: 18, border: `1px solid ${T.border}`, borderRadius: 11, background: T.card }}>
+          {([
+            { value: 'mensajes', label: 'Mensajes', count: sinLeer },
+            { value: 'solicitudes', label: 'Solicitudes de ausencia', count: ausenciasPendientes.length },
+          ] as const).map((item) => (
+            <button key={item.value} type="button" role="tab" aria-selected={vistaBandeja === item.value} onClick={() => setVistaBandeja(item.value)}
+              style={{ padding: '9px 14px', border: 'none', borderRadius: 8, background: vistaBandeja === item.value ? T.primary : 'transparent', color: vistaBandeja === item.value ? '#fff' : T.textSec, fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap', cursor: 'pointer' }}>
+              {item.label}{item.count > 0 ? ` (${item.count})` : ''}
+            </button>
+          ))}
+        </div>
+
         {/* `width:fit-content` no es cosmetica: esta fila es la zona `bandeja-filtros`
             del recorrido y, a todo lo ancho, el foco abarcaba 1.400 px de los que
             1.200 eran aire — la señal, que apunta al centro de la zona, caia en
             vacio. Ajustada al contenido, enfoca los dos botones y ya esta. */}
-        <div data-demo="bandeja-filtros" style={{ display: 'flex', gap: 8, marginBottom: 16, width: 'fit-content' }}>
+        {vistaBandeja === 'mensajes' && <div data-demo="bandeja-filtros" style={{ display: 'flex', gap: 8, marginBottom: 16, width: 'fit-content' }}>
           {(['abiertas', 'todas'] as const).map((k) => {
             const on = filtro === k;
             return <button key={k} onClick={() => setFiltro(k)} className="b-btn" style={{ padding: '7px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, background: on ? T.primary : T.card, color: on ? '#fff' : T.textSec, border: `1px solid ${on ? T.primary : T.border}` }}>
               {k === 'abiertas' ? 'Abiertas' : 'Todas'}
             </button>;
           })}
-        </div>
+        </div>}
 
         {/* Sección de Ausencias Pendientes */}
-        {ausenciasPendientes.length > 0 && (
+        {vistaBandeja === 'solicitudes' && ausenciasPendientes.length > 0 && (
           <div style={{ marginBottom: 24 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 12 }}>Peticiones de Ausencia</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -492,7 +507,13 @@ function BandejaScreen() {
           </div>
         )}
 
-        {filtradas.length === 0 ? (
+        {vistaBandeja === 'solicitudes' && ausenciasPendientes.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '48px 20px', background: T.card, borderRadius: 16, border: `1px solid ${T.border}`, color: T.textSec, fontSize: 13 }}>
+            No hay solicitudes de ausencia pendientes.
+          </div>
+        )}
+
+        {vistaBandeja === 'mensajes' && (filtradas.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', background: T.card, borderRadius: 16, border: `1px solid ${T.border}` }}>
             <Icon name="mail" size={42} color={T.textTer} />
             <p style={{ fontSize: 15, color: T.textSec, marginTop: 14, marginBottom: 4 }}>No hay mensajes {filtro === 'abiertas' ? 'abiertos' : 'todavía'}</p>
@@ -520,7 +541,7 @@ function BandejaScreen() {
               );
             })}
           </div>
-        )}
+        ))}
       </div>
 
       {abierta && (

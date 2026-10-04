@@ -1393,7 +1393,7 @@ export default function ConfiguracionWeb() {
           </div>
         )}
         {/* Tabs rail */}
-        <nav style={{
+        <nav aria-label="Secciones de configuración" style={{
           display: (isMobile && tab !== null) ? 'none' : 'flex',
           borderRight: `1px solid ${T.border}`,
           padding: isMobile ? '12px 12px 32px' : '24px 14px',
@@ -1684,7 +1684,7 @@ export default function ConfiguracionWeb() {
 function TabButton({ t, active, onClick, demoActive = false }: { t: TabDef; active: boolean; onClick: () => void; demoActive?: boolean }) {
   const [hov, setHov] = useState(false);
   return (
-    <button onClick={onClick}
+    <button type="button" aria-current={active ? 'page' : undefined} onClick={onClick}
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: 11,

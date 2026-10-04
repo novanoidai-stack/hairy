@@ -7,7 +7,7 @@ export const manualBandeja: ManualContent = {
   secciones: [
     {
       titulo: 'Abrir una conversación',
-      texto: 'Haz clic en cualquier fila para ver el hilo completo. Un punto de color marca los mensajes que aún no has leído.',
+      texto: 'En la pestaña "Mensajes", haz clic en cualquier fila para ver el hilo completo. Un punto de color marca los mensajes que aún no has leído.',
       captura: '/manuals/bandeja/lista.png',
       highlight: { top: '29%', left: '17%', width: '81%', height: '32%' },
     },
@@ -29,7 +29,7 @@ export const manualBandeja: ManualContent = {
     },
     {
       titulo: 'Peticiones de ausencia',
-      texto: 'Cuando alguien del equipo pide vacaciones o un día libre, aparece en "Peticiones de Ausencia": "Aprobar" bloquea su agenda esos días y "Rechazar" descarta la petición.',
+      texto: 'En la pestaña "Solicitudes de ausencia" revisas las peticiones del equipo. La solicitud ya reserva esas fechas en la Agenda mientras está pendiente; "Aprobar" mantiene el bloqueo y "Rechazar" lo elimina.',
     },
   ],
 };

@@ -229,7 +229,7 @@ function ListaEsperaScreen() {
         {/* Cabecera */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 22, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: T.text, letterSpacing: -0.5, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.text, letterSpacing: -0.4, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
               Lista de espera
               <button
                 onClick={() => setShowManualPanel(true)}
@@ -267,7 +267,7 @@ function ListaEsperaScreen() {
 
         {/* Filtros */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div role="tablist" aria-label="Estado de la lista de espera" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {([
               { k: 'activas', label: `Activas (${conteo.esperando + conteo.avisado})` },
               { k: 'esperando', label: `Esperando (${conteo.esperando})` },
@@ -276,7 +276,7 @@ function ListaEsperaScreen() {
             ] as { k: FiltroEstado; label: string }[]).map(f => {
               const on = filtro === f.k;
               return (
-                <button key={f.k} className={on ? "le-chip is-active" : "le-chip"} onClick={() => setFiltro(f.k)} style={{
+                <button key={f.k} type="button" role="tab" aria-selected={on} className={on ? "le-chip is-active" : "le-chip"} onClick={() => setFiltro(f.k)} style={{
                   padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
                   border: `1.5px solid ${on ? T.primary : T.border}`, background: on ? T.primary : T.card, color: on ? '#fff' : T.textSec,
                 }}>{f.label}</button>
@@ -291,6 +291,11 @@ function ListaEsperaScreen() {
               leadingIcon="search"
             />
           </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Personas en espera</div>
+          <div style={{ fontSize: 12, color: T.textSec }}>{visibles.length} en esta vista</div>
         </div>
 
         {/* Lista

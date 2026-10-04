@@ -215,7 +215,7 @@ function CitasCRMScreen() {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: T.bg, height: 'calc(100vh / var(--mecha-zoom, 1))', overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ padding: isMobile ? '16px' : '20px 32px', background: T.bgPanel, borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
-        <h1 style={{ margin: 0, fontSize: isMobile ? 20 : 24, fontWeight: 800, color: T.text, letterSpacing: -0.5, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <h1 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.text, letterSpacing: -0.4, display: 'flex', alignItems: 'center', gap: 10 }}>
           Citas
           <button
             className="m-btn-icon"
@@ -261,6 +261,16 @@ function CitasCRMScreen() {
       </div>
 
       {/* Filtros */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', padding: isMobile ? '2px 16px 10px' : '2px 32px 12px', background: T.bg }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Buscar en el historial</div>
+          <div style={{ fontSize: 11.5, color: T.textSec }}>{filteredCitas.length} cita{filteredCitas.length === 1 ? '' : 's'} en esta vista</div>
+        </div>
+        {(search || dateRange !== 'semana' || statusFilter !== 'todos' || profFilter !== 'todos' || srvFilter !== 'todos' || soloSinConfirmar) && (
+          <button type="button" onClick={() => { setSearch(''); setDateRange('semana'); setStatusFilter('todos'); setProfFilter('todos'); setSrvFilter('todos'); setSoloSinConfirmar(false); }}
+            style={{ padding: '7px 11px', border: `1px solid ${T.border}`, borderRadius: 8, background: T.bgPanel, color: T.textSec, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Restablecer filtros</button>
+        )}
+      </div>
       <div data-demo="citas-filtros" style={{ position: 'relative', zIndex: 10, padding: isMobile ? '0 16px 12px' : '0 32px 14px', background: T.bg, display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, overflowX: isMobile ? 'auto' : 'visible', flexWrap: isMobile ? 'nowrap' : 'wrap' }}>
         <div style={{ minWidth: 200, flex: isMobile ? '0 0 auto' : '1 1 200px', maxWidth: 280 }}>
           <STextInput value={search} onChange={setSearch} placeholder="Buscar cliente, telefono o servicio..." />

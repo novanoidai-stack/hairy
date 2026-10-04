@@ -581,6 +581,7 @@ function PresupuestosScreen() {
   // EditorModal (ya tiene edicion de lineas/cliente/notas completa): al confirmar
   // la propuesta de la IA NO se guarda directo, se abre el editor prellenado.
   const ayudaPresupuestoIA = useAyudaIA();
+  const [mostrarCreadorIA, setMostrarCreadorIA] = useState(false);
   const [nlInput, setNlInput] = useState('');
   const [ultimoNlInput, setUltimoNlInput] = useState('');
   const [respuestasFormularioIA, setRespuestasFormularioIA] = useState<Record<string, unknown>>({});
@@ -737,7 +738,7 @@ function PresupuestosScreen() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: isMobile ? 14 : 20 }}>
           <div>
-            <h1 style={{ fontSize: isMobile ? 22 : 28, fontWeight: 700, color: T.text, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: T.text, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 10 }}>
               <Icon name="doc" size={isMobile ? 22 : 26} color={T.primary} /> Presupuestos
               <button
                 onClick={() => setShowManualPanel(true)}
@@ -755,9 +756,15 @@ function PresupuestosScreen() {
             </h1>
             <p style={{ fontSize: isMobile ? 13 : 14, color: T.textSec, margin: 0 }}>Crea un presupuesto, envíalo en PDF por correo y cóbralo en Caja cuando la clienta acepte.</p>
           </div>
-          <button onClick={() => openEditor(null)} className="p-btn" style={{ padding: '11px 18px', background: T.primary, color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-            <Icon name="plus" size={16} color="#fff" /> Nuevo presupuesto
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => setMostrarCreadorIA((v) => !v)} aria-expanded={mostrarCreadorIA} className="p-btn"
+              style={{ padding: '10px 14px', background: T.card, color: T.text, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="sparkles" size={16} color={T.primary} /> {mostrarCreadorIA ? 'Ocultar creador IA' : 'Crear con IA'}
+            </button>
+            <button onClick={() => openEditor(null)} className="p-btn" style={{ padding: '11px 18px', background: T.primary, color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+              <Icon name="plus" size={16} color="#fff" /> Nuevo presupuesto
+            </button>
+          </div>
         </div>
 
         {!paginaManual.loading && !paginaManual.visto && (
@@ -774,7 +781,7 @@ function PresupuestosScreen() {
         {mensaje && <div style={{ padding: '11px 15px', borderRadius: 10, marginBottom: 14, background: mensaje.type === 'success' ? T.successSoft : T.dangerSoft, color: mensaje.type === 'success' ? T.success : T.danger, fontSize: 13.5 }}>{mensaje.text}</div>}
 
         {/* Creador Inteligente (IA) */}
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: isMobile ? 14 : 20, marginBottom: 20 }}>
+        {mostrarCreadorIA && <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, padding: isMobile ? 14 : 20, marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Icon name="sparkles" size={18} color="#FF6B00" />
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: T.text }}>Crear presupuesto rápido</h3>
@@ -860,7 +867,7 @@ function PresupuestosScreen() {
               )}
             </div>
           )}
-        </div>
+        </div>}
 
         {/* Alerta proactiva de seguimiento (Sesion 6): tarjeta de PAGINA, no aviso
             suelto por fila. Reenviar es una accion real (correo); WhatsApp real
@@ -897,10 +904,12 @@ function PresupuestosScreen() {
 
         {/* Filtros + búsqueda */}
         <div data-demo="presupuestos-estados" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>
-          {FILTROS.map(([k, lbl]) => {
-            const on = filtro === k;
-            return <button key={k} onClick={() => setFiltro(k)} className="p-btn" style={{ padding: '7px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, background: on ? T.primary : T.card, color: on ? '#fff' : T.textSec, border: `1px solid ${on ? T.primary : T.border}` }}>{lbl}</button>;
-          })}
+          <div role="tablist" aria-label="Estado de los presupuestos" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {FILTROS.map(([k, lbl]) => {
+              const on = filtro === k;
+              return <button key={k} type="button" role="tab" aria-selected={on} onClick={() => setFiltro(k)} className="p-btn" style={{ padding: '7px 14px', borderRadius: 9, fontSize: 12.5, fontWeight: 700, background: on ? T.primary : T.card, color: on ? '#fff' : T.textSec, border: `1px solid ${on ? T.primary : T.border}` }}>{lbl}</button>;
+            })}
+          </div>
           <div style={{ flex: 1, minWidth: 160, position: 'relative' }}>
             <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar por nombre, nº o título" style={{ width: '100%', padding: '8px 12px 8px 32px', background: T.card, border: `1px solid ${T.border}`, borderRadius: 9, color: T.text, fontSize: 13, boxSizing: 'border-box' }} />
             <span style={{ position: 'absolute', left: 10, top: 9 }}><Icon name="search" size={14} color={T.textTer} /></span>
@@ -908,6 +917,10 @@ function PresupuestosScreen() {
         </div>
 
         {/* Lista */}
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Presupuestos</div>
+          <div style={{ fontSize: 12, color: T.textSec }}>{filtrados.length} en esta vista</div>
+        </div>
         {filtrados.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', background: T.card, borderRadius: 16, border: `1px solid ${T.border}` }}>
             <Icon name="doc" size={42} color={T.textTer} />

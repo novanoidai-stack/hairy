@@ -24,7 +24,7 @@ export const manualMiJornada: ManualContent = {
     },
     {
       titulo: 'Cambiar de periodo y vista',
-      texto: 'Los botones "Hoy", "Semana" y "Mes" cambian el rango de las estadísticas. Esta página es solo tuya: el rendimiento del resto del equipo y el control horario de todo el salón están en la página de Equipo.',
+      texto: 'Los botones "Hoy", "Semana" y "Mes" cambian el rango de las estadísticas. Las pestañas "Citas", "Mis números", "Bloqueos" y "Registro" separan el contenido tanto en móvil como en escritorio. Esta página es solo tuya: el rendimiento del resto del equipo y el control horario de todo el salón están en Equipo.',
     },
     {
       titulo: 'Tu actividad y comisión',

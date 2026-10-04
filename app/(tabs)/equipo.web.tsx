@@ -692,7 +692,7 @@ export default function EquipoWeb() {
           las dos ultimas: son datos de todo el centro. */}
       {(!profileData || can({ role: roleOf(profileData as any) as any } as any, 'equipo.gestionar')) && (
         <div style={{ padding: isMobile ? '12px 16px 0' : '16px 32px 0' }}>
-          <div data-demo="equipo-vistas" style={{ display: 'inline-flex', background: TOKENS.bg, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, flexWrap: 'wrap', gap: 2 }}>
+          <div data-demo="equipo-vistas" role="tablist" aria-label="Secciones de Equipo" style={{ display: 'inline-flex', background: TOKENS.bgCard, borderRadius: 10, padding: 3, border: `1px solid ${TOKENS.border}`, flexWrap: 'wrap', gap: 2 }}>
             {([
               { value: 'fichas', label: 'Fichas' },
               { value: 'rendimiento', label: 'Rendimiento' },
@@ -700,6 +700,9 @@ export default function EquipoWeb() {
             ] as const).map((o) => (
               <button
                 key={o.value}
+                type="button"
+                role="tab"
+                aria-selected={vistaEquipo === o.value}
                 data-demo-abrir={
                   o.value === 'rendimiento' ? 'equipo-comisiones'
                   : o.value === 'fichas' ? 'equipo-fichas'
@@ -711,9 +714,8 @@ export default function EquipoWeb() {
                   minHeight: isMobile ? 38 : 32,
                   borderRadius: 7, border: 'none', cursor: 'pointer',
                   fontSize: 12.5, fontWeight: 700,
-                  background: vistaEquipo === o.value ? TOKENS.bgCard : 'transparent',
-                  color: vistaEquipo === o.value ? TOKENS.text : TOKENS.textSec,
-                  boxShadow: vistaEquipo === o.value ? '0 1px 3px rgba(40,30,24,0.12)' : 'none',
+                  background: vistaEquipo === o.value ? TOKENS.primary : 'transparent',
+                  color: vistaEquipo === o.value ? '#fff' : TOKENS.textSec,
                   display: 'inline-flex',
                   alignItems: 'center',
                   touchAction: 'manipulation',
@@ -1480,7 +1482,7 @@ export default function EquipoWeb() {
                   </div>
                   {b.motivo?.startsWith('[PENDIENTE]') ? (
                     <button
-                      onClick={() => router.push('/(tabs)/bandeja' as never)}
+                      onClick={() => router.push('/(tabs)/bandeja?seccion=solicitudes' as never)}
                       style={{ alignSelf: 'center', padding: '8px 12px', borderRadius: 9, border: `1px solid ${TOKENS.borderHi}`, background: TOKENS.bgPanel, color: TOKENS.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                       Revisar
                     </button>

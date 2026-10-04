@@ -6,6 +6,10 @@ export const manualInformes: ManualContent = {
   avisoTexto: 'Aquí ves cómo va el salón: ingresos, citas, fidelización de clientes y comisiones. Cada gráfica se explica sola debajo, y todo se exporta a PDF o CSV.',
   secciones: [
     {
+      titulo: 'Moverte por el informe',
+      texto: 'Arriba eliges entre "Análisis Visual" y "Registros Legales". En Análisis Visual, la barra de secciones te lleva directamente a Resumen, Evolución, Ocupación, Ingresos, Servicios, Clientes o Comisiones sin recorrer toda la página.',
+    },
+    {
       titulo: 'Elegir el periodo',
       texto: 'Los botones de arriba a la derecha ("Hoy", "Semana", "Mes", "3 Meses" y "Anual") cambian el rango: los KPIs y las gráficas se recalculan sobre él. El eje de tiempo de las gráficas se ajusta solo. Liquidaciones trabaja por meses con su propio selector, y fidelización usa 13 meses de historial para cubrir el ciclo de visitas.',
       captura: '/manuals/informes/kpis.png',

@@ -1668,30 +1668,33 @@ function Tabs({ active, onChange }: { active: Tab; onChange: (t: Tab) => void })
   const items: { key: Tab; label: string }[] = [
     { key: 'resumen', label: 'Resumen' },
     { key: 'notas', label: 'Alergias' },
-    { key: 'color', label: 'Color/Quimica' },
+    { key: 'color', label: 'Color y química' },
     { key: 'historial', label: 'Historial' },
     { key: 'productos', label: 'Productos' },
   ];
   return (
-    <div style={{ display: 'flex', gap: 4, padding: 3, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10, marginBottom: 14 }}>
+    <div role="tablist" aria-label="Secciones de la ficha de cliente" style={{ display: 'flex', gap: 4, maxWidth: '100%', overflowX: 'auto', padding: 4, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 11, marginBottom: 14 }}>
       {items.map((it) => {
         const isActive = active === it.key;
         return (
           <button
             key={it.key}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
             className="m-chip"
             onClick={() => onChange(it.key)}
             style={{
-              flex: 1,
-              padding: '7px 6px',
-              background: isActive ? TOKENS.bgCardHi : 'transparent',
+              flex: '0 0 auto',
+              padding: '8px 10px',
+              background: isActive ? TOKENS.primary : 'transparent',
               border: 'none',
               borderRadius: 8,
-              color: isActive ? TOKENS.text : TOKENS.textSec,
-              fontSize: 11,
-              fontWeight: 600,
+              color: isActive ? '#fff' : TOKENS.textSec,
+              fontSize: 12,
+              fontWeight: 700,
               cursor: 'pointer',
-              boxShadow: isActive ? '0 1px 0 rgba(255,255,255,0.06)' : 'none',
+              whiteSpace: 'nowrap',
             }}
           >
             {it.label}

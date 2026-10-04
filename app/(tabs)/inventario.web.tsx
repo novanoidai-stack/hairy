@@ -1009,7 +1009,7 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
             <Icon name="package" size={28} color="#fff" />
           </div>
           <div>
-            <h1 style={styles.headerTitle}>
+            <h1 style={{ ...styles.headerTitle, fontSize: isMobile ? 22 : 26 }}>
               {t('inv_titulo')}
             </h1>
             <p style={{ fontSize: '13px', color: TOKENS.textSec, margin: '2px 0 0 0' }}>
@@ -1192,12 +1192,16 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
       )}
 
       {/* Category Tabs */}
-      <div data-demo="inventario-categorias" style={styles.categoryTabs} className="no-scrollbar">
+      <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text, marginBottom: 10 }}>Productos por categoría</div>
+      <div data-demo="inventario-categorias" role="tablist" aria-label="Categorías de inventario" style={styles.categoryTabs} className="no-scrollbar">
         {categorias.map((cat) => {
           const isSelected = filtroCategoria === cat;
           return (
             <button
               key={cat}
+              type="button"
+              role="tab"
+              aria-selected={isSelected}
               onClick={() => {
                 setFiltroCategoria(cat);
                 setSoloStockBajo(false); // Reset low stock filter on tab change
@@ -1245,6 +1249,8 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
         <div style={styles.toolbarRight}>
           <div style={{ ...styles.viewToggleGroup, display: isMobile ? 'none' : 'flex' }}>
             <button
+              type="button"
+              aria-pressed={viewMode === 'grid'}
               className={viewMode === 'grid' ? 'btn-tab is-active' : 'btn-tab'}
               style={{
                 ...styles.toggleBtn,
@@ -1257,6 +1263,8 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
               {!isMobile && <span style={styles.toggleBtnText}>{t('inv_mosaico')}</span>}
             </button>
             <button
+              type="button"
+              aria-pressed={viewMode === 'table'}
               className={viewMode === 'table' ? 'btn-tab is-active' : 'btn-tab'}
               style={{
                 ...styles.toggleBtn,
@@ -1278,6 +1286,10 @@ FORMATO OBLIGATORIO para el texto (nada de párrafos de prosa corridos):
       </div>
 
       {/* Product List/Grid Container */}
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginTop: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text }}>Referencias</div>
+        <div style={{ fontSize: 12, color: TOKENS.textSec }}>{productosFiltrados.length} en esta vista</div>
+      </div>
       <div style={{ marginTop: '16px' }}>
         {productosFiltrados.length === 0 ? (
           <div style={styles.emptyState}>
@@ -1594,10 +1606,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   headerTitle: {
     fontSize: '26px',
-    fontWeight: '800',
+    fontWeight: '700',
     color: TOKENS.text,
     margin: 0,
-    letterSpacing: '-0.5px',
+    letterSpacing: '-0.4px',
   },
 
   // KPI Grid

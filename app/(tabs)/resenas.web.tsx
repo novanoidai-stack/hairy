@@ -351,7 +351,7 @@ ${comentarios}`;
         {/* CABECERA */}
         <header style={{ marginBottom: 28, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16, alignItems: isMobile ? 'stretch' : 'flex-end', justifyContent: 'space-between' }}>
           <div>
-            <h1 style={{ fontSize: isMobile ? 26 : 32, fontWeight: 800, color: TOKENS.text, margin: '0 0 8px 0', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: TOKENS.text, margin: '0 0 8px 0', letterSpacing: '-0.4px', display: 'flex', alignItems: 'center', gap: 10 }}>
               Reseñas de clientes
               <button
                 onClick={() => setShowManualPanel(true)}
@@ -523,6 +523,7 @@ ${comentarios}`;
 
             {/* FILTROS */}
             <div data-demo="resenas-filtros" style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 16, padding: isMobile ? 14 : 16, marginBottom: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: TOKENS.text }}>Filtrar reseñas</div>
               {/* Busqueda */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: TOKENS.bgCardHi, border: `1px solid ${TOKENS.border}`, borderRadius: 10, padding: '9px 12px' }}>
                 <Icon name="search" size={16} color={TOKENS.textTer} />
@@ -751,7 +752,7 @@ ${comentarios}`;
 
 function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div role="group" aria-label={label} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <span style={{ fontSize: 11, fontWeight: 700, color: TOKENS.textTer, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{label}</span>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{children}</div>
     </div>
@@ -761,6 +762,8 @@ function FilterGroup({ label, children }: { label: string; children: React.React
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
+      type="button"
+      aria-pressed={active}
       className={active ? 'rs-chip is-active' : 'rs-chip'}
       onClick={onClick}
       style={{
