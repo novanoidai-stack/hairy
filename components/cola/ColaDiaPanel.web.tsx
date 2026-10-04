@@ -172,7 +172,7 @@ export function ColaDiaPanel({
               gap: 8,
             }}
           >
-            <span>💈 Cola del Día</span>
+            <span>Cola del Día</span>
             <span
               style={{
                 fontSize: 11,

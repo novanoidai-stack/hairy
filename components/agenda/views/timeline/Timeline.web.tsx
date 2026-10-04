@@ -1480,12 +1480,11 @@ function DayTimeline({
             </div>
 
             {/* §5 Mecha: línea de flujo única por cadena (debajo de los
-                bloques, zIndex 2 vs 3 del contenedor de citas) */}
+                bloques, zIndex 2 vs 3 del contenedor de citas). El overlay
+                mide las tarjetas reales (data-mecha-cita): solo necesita las
+                citas y la altura de la rejilla. */}
             <ChainFlowOverlay
               citas={citasWithLanes || []}
-              profesionales={profesionales}
-              START_H={START_H}
-              ROW_H={ROW_H}
               height={HOURS.length * ROW_H}
             />
             <TimelineNowIndicator

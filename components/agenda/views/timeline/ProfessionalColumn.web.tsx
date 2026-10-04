@@ -237,11 +237,17 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
           }
         }
 
+        // Orden de pintado = orden de apilado (son hermanos absolutos): el
+        // velo de "salon cerrado" al FONDO y los bloqueos reales
+        // (vacaciones, ausencias, descansos) ENCIMA. Antes cerrado pintaba
+        // ultimo y su velo negro al 46% se coma cualquier bloqueo que cayera
+        // en dia cerrado ("los bloqueos se ven demasiado oscuros cuando el
+        // salon esta cerrado", 4 oct 2026).
         return [
-          ...(bloqueos as any[]),
-          ...virtualPauses,
-          ...fueraJornada,
           ...salonCerrado,
+          ...fueraJornada,
+          ...virtualPauses,
+          ...(bloqueos as any[]),
         ]
           .filter((b: any) => {
             if (b.profesional_id !== prof.id) return false;
@@ -307,10 +313,13 @@ export const DayTimelineProfessionalColumn = memo(function DayTimelineProfession
             let boxShadowStyle = `0 1px 4px ${bColor}18`;
 
             if (isSalonCerrado) {
-              bgStyle = "linear-gradient(180deg, rgba(20, 16, 14, 0.46) 0%, rgba(20, 16, 14, 0.38) 100%)";
+              // Velo ligero (antes 0.46/0.38: con un bloqueo debajo quedaba
+              // casi negro). El borde rojo y la etiqueta siguen diciendo
+              // "cerrado"; el fondo solo apaga la columna.
+              bgStyle = "linear-gradient(180deg, rgba(20, 16, 14, 0.18) 0%, rgba(20, 16, 14, 0.12) 100%)";
               borderLeftStyle = "3.5px solid #ef4444";
               borderBoxStyle = "1px solid rgba(255, 255, 255, 0.08)";
-              boxShadowStyle = "0 2px 6px rgba(0,0,0,0.14)";
+              boxShadowStyle = "0 2px 6px rgba(0,0,0,0.10)";
             } else if (isFueraJornada) {
               bgStyle = "linear-gradient(180deg, rgba(30, 24, 20, 0.22) 0%, rgba(30, 24, 20, 0.17) 100%)";
               borderLeftStyle = "2px solid rgba(120, 113, 108, 0.35)";

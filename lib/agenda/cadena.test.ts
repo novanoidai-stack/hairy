@@ -105,3 +105,32 @@ Deno.test('esReservaGrupo distingue bodas/grupos de cadenas unipersonales', () =
   assertEquals(esReservaGrupo('gBoda', boda), true);
   assertEquals(esReservaGrupo('g1', CADENA), false);
 });
+
+// --- Solape temporal (4 oct 2026): paralelo = grupo, secuencia = cadena ------
+
+Deno.test('dos eslabones del mismo grupo a la vez son reserva de grupo aunque no haya marca', () => {
+  // Sin notas, misma clienta incluso: si dos citas del grupo se solapan en
+  // el tiempo, no puede ser una cadena (una clienta, dos sillas a la vez).
+  const paraleloSinMarca = [
+    cita({ id: 'a', inicio: h('10:00'), fin: h('11:30'), grupo_id: 'gP' }),
+    cita({ id: 'b', inicio: h('11:00'), fin: h('12:00'), grupo_id: 'gP' }),
+  ];
+  assertEquals(esReservaGrupo('gP', paraleloSinMarca), true);
+});
+
+Deno.test('una cadena de verdad (secuencial, sin marca) sigue sin ser grupo', () => {
+  const secuencial = [
+    cita({ id: 'a', inicio: h('10:00'), fin: h('11:00'), grupo_id: 'gS' }),
+    // Encadenada pero con hueco: 11:00-12:00 esperando, color a las 12:00.
+    cita({ id: 'b', inicio: h('12:00'), fin: h('13:00'), grupo_id: 'gS' }),
+  ];
+  assertEquals(esReservaGrupo('gS', secuencial), false);
+});
+
+Deno.test('eslabones que se tocan (fin de uno = inicio del siguiente) no son solape', () => {
+  const tocando = [
+    cita({ id: 'a', inicio: h('10:00'), fin: h('11:00'), grupo_id: 'gT' }),
+    cita({ id: 'b', inicio: h('11:00'), fin: h('12:00'), grupo_id: 'gT' }),
+  ];
+  assertEquals(esReservaGrupo('gT', tocando), false);
+});

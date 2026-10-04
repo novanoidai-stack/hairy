@@ -117,6 +117,22 @@ export function esReservaGrupo(
     (c.notas.includes("(Grupo)") || c.notas.includes("(Boda)") || c.notas.toLowerCase().includes("boda"))
   );
   if (tieneMarcaGrupo) return true;
+  // Solape temporal (4 oct 2026): una cadena es SECUENCIAL por definicion
+  // (la clienta acaba con uno y empieza con el siguiente; los extremos que
+  // se tocan no cuentan). Dos eslabones del mismo grupo a la vez solo pueden
+  // ser personas distintas atendidas en paralelo: una reserva de grupo,
+  // aunque las notas se hayan perdido o el nombre no diga "boda". Es la
+  // regla que evita que un grupo sin marca dibuje cables cruzando sillas.
+  const seSolapan = (a: any, b: any) =>
+    new Date(a.inicio).getTime() < new Date(b.fin).getTime() &&
+    new Date(b.inicio).getTime() < new Date(a.fin).getTime();
+  if (
+    delGrupo.some((a: any, i: number) =>
+      delGrupo.some((b: any, j: number) => i < j && seSolapan(a, b)),
+    )
+  ) {
+    return true;
+  }
   const clientIds = new Set(delGrupo.map((c) => c.cliente_id).filter(Boolean));
   if (clientIds.size > 1) return true;
   return false;

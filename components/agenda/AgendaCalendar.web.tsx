@@ -4154,7 +4154,7 @@ export default function AgendaCalendar() {
               minHeight: 33,
             }}
           >
-            <span>💈</span>
+            <Icon name="list" size={15} color={roleTheme.primary} />
             {!isMobile && "Cola del día"}
           </button>
           <button
@@ -4177,8 +4177,8 @@ export default function AgendaCalendar() {
               minHeight: 33,
             }}
           >
-            <span>👰</span>
-            {/* En movil la etiqueta corta: el emoji solo pasaba por un boton
+            <Icon name="cake" size={15} color="#7c3aed" />
+            {/* En movil la etiqueta corta: el icono solo pasaba por un boton
                 decorativo y nadie encontraba las bodas ("deberia estar aqui
                 y no lo veo"). */}
             {isMobile ? "Boda" : "Grupo / Boda"}
