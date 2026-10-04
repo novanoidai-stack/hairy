@@ -159,6 +159,7 @@ const TIPO_CONFIG: Record<string, { label: string; color: string }> = {
   reunion:    { label: 'Reunión',    color: '#3b82f6' },
   baja:       { label: 'Baja',       color: '#e23b34' },
   descanso:   { label: 'Descanso',   color: '#0f9d6b' },
+  otro:       { label: 'Otro bloqueo', color: '#8a7d70' },
 };
 
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -209,12 +210,14 @@ export default function EquipoWeb() {
   // y los fichajes vivian dentro de "Mi jornada" detras de un conmutador, que
   // mezclaba lo mio con lo de todos.
   const [vistaEquipo, setVistaEquipo] = useState<'fichas' | 'rendimiento' | 'horario'>('fichas');
+  const [detalleTab, setDetalleTab] = useState<'ficha' | 'horario' | 'bloqueos'>('horario');
   const [salonNombre, setSalonNombre] = useState('');
   // Persona con la que se abre "Control horario" al venir desde su ficha.
   const [horarioProfInicial, setHorarioProfInicial] = useState<string | null>(null);
   const [horarioSalon, setHorarioSalon] = useState<Record<number, { abierto: boolean; apertura: string; cierre: string; pausa_inicio: string | null; pausa_fin: string | null }>>({});
   const [horarios, setHorarios] = useState<any[]>([]);
-  const [bloqueos, setBloqueos] = useState<any[]>([]);
+  const [errorHorario, setErrorHorario] = useState('');
+  const [bloqueosVersion, setBloqueosVersion] = useState(0);
   // Vista mensual del calendario de la ficha: mes que se esta mirando (con
   // flechas de navegacion) y dia clicado para desplegar sus pausas/bloqueos.
   const [mesCalendario, setMesCalendario] = useState(() => new Date());
@@ -436,32 +439,25 @@ export default function EquipoWeb() {
   async function cargarPanelDerecho(profId?: string) {
     const id = profId ?? selected;
     if (!id) return;
-    const [{ data: hor }, { data: bloq }] = await Promise.all([
-      supabase.from('horarios_profesional').select('id, dia_semana, hora_inicio, hora_fin, turno').eq('profesional_id', id),
-      supabase.from('bloqueos_profesional').select('id, tipo, inicio, fin, motivo, recurrencia, recurrencia_padre_id')
-        .eq('profesional_id', id)
-        .gte('fin', new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
-        .order('inicio', { ascending: true })
-        .limit(10),
-    ]);
+    const { data: hor, error } = await supabase.from('horarios_profesional')
+      .select('id, dia_semana, hora_inicio, hora_fin, turno').eq('profesional_id', id);
+    setErrorHorario(error ? mensajeDeError(error, 'No se pudo cargar el horario.') : '');
     setHorarios(hor ?? []);
-    setBloqueos(bloq ?? []);
     setEditDias([]);
     setMenuBloqueoId(null);
   }
 
   useEffect(() => {
     if (!selected) return;
+    setDetalleTab('horario');
     cargarPanelDerecho(selected);
     setMesCalendario(new Date());
     setDiaCalendarioSel(null);
   }, [selected]);
 
-  // Bloqueos del mes que se esta mirando en el calendario (independiente de
-  // `bloqueos`, que es deliberadamente "solo los proximos 10" para la lista de
-  // arriba). Sin esto, navegar a un mes pasado/futuro con las flechas no
-  // pintaria nada porque `bloqueos` nunca trae fuera de esa ventana.
+  // La lista y el calendario leen el mismo mes de bloqueos_profesional.
   const [bloqueosMes, setBloqueosMes] = useState<any[]>([]);
+  const [errorBloqueos, setErrorBloqueos] = useState('');
   // Clave primitiva del mes visible: al cambiar de profesional, el efecto de
   // arriba hace `setMesCalendario(new Date())`, y un `Date` siempre es una
   // referencia nueva aunque sea "el mismo mes" — depender del objeto disparaba
@@ -475,17 +471,22 @@ export default function EquipoWeb() {
     const hastaMes = new Date(year, month + 1, 0, 23, 59, 59);
     let cancelado = false;
     (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('bloqueos_profesional')
         .select('id, tipo, inicio, fin, motivo, recurrencia, recurrencia_padre_id')
+        .eq('negocio_id', negocioId)
         .eq('profesional_id', selected)
+        .neq('tipo', 'reserva_temporal')
         .lte('inicio', hastaMes.toISOString())
         .gte('fin', desdeMes.toISOString())
         .order('inicio', { ascending: true });
-      if (!cancelado) setBloqueosMes(data ?? []);
+      if (!cancelado) {
+        setErrorBloqueos(error ? mensajeDeError(error, 'No se pudieron cargar los bloqueos.') : '');
+        setBloqueosMes(error ? [] : (data ?? []));
+      }
     })();
     return () => { cancelado = true; };
-  }, [selected, mesCalendarioKey]);
+  }, [selected, negocioId, mesCalendarioKey, bloqueosVersion]);
 
   // Deep-link desde el onboarding (?focus=horarios): abre la ficha del primer
   // profesional activo para que el dueno configure su horario sin tener que buscarlo.
@@ -560,27 +561,14 @@ export default function EquipoWeb() {
     }
   }
 
-  function adjustEditH(field: 'jornadaIni' | 'jornadaFin' | 'pausaIni' | 'pausaFin', hDelta: number, mDelta: number) {
-    const setter = field === 'jornadaIni' ? setEditJornadaIni :
-                   field === 'jornadaFin' ? setEditJornadaFin :
-                   field === 'pausaIni' ? setEditPausaIni :
-                   setEditPausaFin;
-    const current = field === 'jornadaIni' ? editJornadaIni :
-                    field === 'jornadaFin' ? editJornadaFin :
-                    field === 'pausaIni' ? editPausaIni :
-                    editPausaFin;
-    const [hh, mm] = current.split(':').map(Number);
-    let nh = hh + hDelta;
-    let nm = mm + mDelta;
-    if (nm >= 60) { nm -= 60; nh++; }
-    if (nm < 0) { nm += 60; nh--; }
-    if (nh < 0) nh = 0;
-    if (nh > 23) nh = 23;
-    setter(`${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`);
-  }
-
   async function guardarHorario() {
     if (!selected || editDias.length === 0) return;
+    if (!editJornadaIni || !editJornadaFin || editJornadaIni >= editJornadaFin ||
+      (editHasPausa && (!editPausaIni || !editPausaFin ||
+        !(editJornadaIni < editPausaIni && editPausaIni < editPausaFin && editPausaFin < editJornadaFin)))) {
+      alert('Revisa las horas: entrada, pausa y salida deben ir en orden.');
+      return;
+    }
     setSavingHorario(true);
     try {
       for (const d of editDias) {
@@ -633,14 +621,17 @@ export default function EquipoWeb() {
   }
 
   async function eliminarBloqueo(bloqId: string) {
-    await supabase.from('bloqueos_profesional').delete().eq('id', bloqId);
-    await cargarPanelDerecho();
+    const { error } = await supabase.from('bloqueos_profesional').delete().eq('negocio_id', negocioId).eq('id', bloqId);
+    if (error) { alert(mensajeDeError(error, 'No se pudo eliminar el bloqueo.')); return; }
+    setBloqueosVersion((v) => v + 1);
   }
 
   async function eliminarSerieBloqueo(bloq: any) {
     const padreId = bloq.recurrencia_padre_id ?? bloq.id;
-    await supabase.from('bloqueos_profesional').delete().or(`id.eq.${padreId},recurrencia_padre_id.eq.${padreId}`);
-    await cargarPanelDerecho();
+    const { error } = await supabase.from('bloqueos_profesional').delete()
+      .eq('negocio_id', negocioId).or(`id.eq.${padreId},recurrencia_padre_id.eq.${padreId}`);
+    if (error) { alert(mensajeDeError(error, 'No se pudo eliminar la serie.')); return; }
+    setBloqueosVersion((v) => v + 1);
   }
 
   return (
@@ -1090,15 +1081,21 @@ export default function EquipoWeb() {
               </div>
             </div>
 
-            {/* Layout 2 columnas.
-                OJO: la zona `equipo-ficha` del recorrido guiado NO va aqui. Sobre
-                la rejilla entera el foco medía 1.394x468 y su centro caia en el
-                bloque de comision / especialidades / acceso — justo lo que la voz
-                NO nombra. Va sobre el horario de trabajo (ver mas abajo), que es
-                lo primero que dice el paso. */}
-            <div className="equipo-detail-grid" style={{ display: 'grid', gridTemplateColumns: (isMobile || isTablet) ? '1fr' : 'minmax(0,1.05fr) minmax(0,0.95fr)', gap: 24, alignItems: 'start' }}>
-              {/* Columna izquierda: identidad · metricas · horario */}
+            <div role="tablist" aria-label={`Gestión de ${profSel.nombre}`} style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 18, padding: 4, border: `1px solid ${TOKENS.border}`, borderRadius: 12, background: TOKENS.bgCard, width: 'fit-content', maxWidth: '100%' }}>
+              {([
+                { value: 'horario', label: 'Horario semanal' },
+                { value: 'bloqueos', label: 'Bloqueos y ausencias' },
+                { value: 'ficha', label: 'Ficha y acceso' },
+              ] as const).map((tab) => (
+                <button key={tab.value} type="button" role="tab" aria-selected={detalleTab === tab.value} onClick={() => setDetalleTab(tab.value)}
+                  style={{ padding: isMobile ? '10px 12px' : '9px 16px', border: 'none', borderRadius: 9, background: detalleTab === tab.value ? TOKENS.primary : 'transparent', color: detalleTab === tab.value ? '#fff' : TOKENS.textSec, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div className="equipo-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', maxWidth: 920, margin: '0 auto' }}>
               <div>
+            <div style={{ display: detalleTab === 'ficha' ? 'block' : 'none' }}>
 
             {/* Info de contacto / contrato */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
@@ -1267,6 +1264,7 @@ export default function EquipoWeb() {
                 </button>
               </div>
             </Section>
+            </div>
 
             {/* Horario de TRABAJO de esta persona (horarios_profesional). No
                 confundir con el horario de APERTURA del salon, que se toca en
@@ -1275,7 +1273,8 @@ export default function EquipoWeb() {
                 escritorio rejilla de 7 columnas.
                 Es ademas la zona `equipo-ficha` del recorrido guiado: es lo
                 primero que nombra el paso ("su horario de trabajo"). */}
-            <div data-demo="equipo-ficha">
+            <div data-demo="equipo-ficha" style={{ display: detalleTab === 'horario' ? 'block' : 'none' }}>
+            {errorHorario && <p role="alert" style={{ color: '#b42318', fontSize: 13 }}>{errorHorario}</p>}
             <Section title={`Horario de trabajo de ${profSel.nombre.split(' ')[0]}`}>
               {(() => {
                 // Incoherencias con el horario del salon: trabajar un dia que el
@@ -1316,83 +1315,22 @@ export default function EquipoWeb() {
                   </div>
                 );
               })()}
-              <div style={{ width: '100%', paddingBottom: 6 }}>
-                {/* Codigo de color: inicio de turno, fin de turno y pausa entre
-                    turnos se distinguen claramente (antes todo salia del mismo
-                    gris, sin forma de leer de un vistazo donde empieza/acaba). */}
-                {(() => { const COLOR_INICIO = TOKENS.success; const COLOR_FIN = TOKENS.primaryHi; const COLOR_PAUSA = '#0891b2'; return (
-                <div style={{ background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12, padding: isMobile ? 6 : 14, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(7,1fr)', gap: isMobile ? 2 : 4 }}>
-                  {DIAS_SEMANA.map((dia, i) => {
-                    const dbDia = i === 6 ? 0 : i + 1;
-                    const dayH = horarios.filter((x) => x.dia_semana === dbDia).sort((a, b) => (a.turno ?? 1) - (b.turno ?? 1));
-                    const hasH = dayH.length > 0;
-                    const isEditing = editDias.includes(dbDia);
-                    if (isMobile) {
-                      // Fila: nombre del dia a la izquierda, horas a la derecha.
-                      return (
-                        <div key={i}
-                          onClick={() => openEditDia(dbDia)}
-                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 11px', borderRadius: 8, background: isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.08)' : 'rgba(148,163,184,0.05)', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
-                          <span style={{ fontSize: 12.5, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{DIAS_SEMANA_FULL[dbDia]}</span>
-                          {hasH ? (
-                            <span style={{ fontSize: 12, textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
-                              {dayH.map((h, hi) => (
-                                <span key={hi}>
-                                  {hi > 0 && (
-                                    <span style={{ color: COLOR_PAUSA, fontWeight: 700, marginRight: 4 }}>
-                                      pausa {fmtHora(dayH[hi - 1].hora_fin)}–{fmtHora(h.hora_inicio)} ·
-                                    </span>
-                                  )}
-                                  <span style={{ color: COLOR_INICIO, fontWeight: 700 }}>{fmtHora(h.hora_inicio)}</span>
-                                  <span style={{ color: TOKENS.textTer }}> – </span>
-                                  <span style={{ color: COLOR_FIN, fontWeight: 700 }}>{fmtHora(h.hora_fin)}</span>
-                                </span>
-                              ))}
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: 12, color: TOKENS.textTer }}>Cerrado</span>
-                          )}
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={i}
-                        onClick={() => openEditDia(dbDia)}
-                        onMouseEnter={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.background = hasH ? 'rgba(244,80,30,0.18)' : 'rgba(148,163,184,0.1)'; }}}
-                        onMouseLeave={(e) => { if (!isEditing) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)'; }}}
-                        style={{ textAlign: 'center', padding: 6, borderRadius: 8, background: isEditing ? 'rgba(244,80,30,0.22)' : hasH ? 'rgba(244,80,30,0.10)' : 'rgba(148,163,184,0.05)', transition: 'transform 0.15s ease, background 0.15s ease', cursor: 'pointer', outline: isEditing ? `2px solid ${TOKENS.primary}` : 'none' }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: isEditing ? TOKENS.text : hasH ? TOKENS.primaryHi : TOKENS.textTer }}>{dia}</div>
-                        {dayH.length === 0 && <div style={{ fontSize: 9, color: TOKENS.textTer, marginTop: 2 }}>Cerrado</div>}
-                        {dayH.map((h, hi) => (
-                          <div key={hi}>
-                            {hi > 0 && (
-                              <div style={{ fontSize: 7, color: COLOR_PAUSA, fontWeight: 700, marginTop: 1, lineHeight: 1.3 }}>
-                                pausa {fmtHora(dayH[hi - 1].hora_fin)}–{fmtHora(h.hora_inicio)}
-                              </div>
-                            )}
-                            <div style={{ fontSize: dayH.length > 1 ? 8 : 9, marginTop: hi === 0 ? 2 : 0, lineHeight: 1.3 }}>
-                              <span style={{ color: COLOR_INICIO, fontWeight: 700 }}>{fmtHora(h.hora_inicio)}</span>
-                              <span style={{ color: TOKENS.textTer }}>-</span>
-                              <span style={{ color: COLOR_FIN, fontWeight: 700 }}>{fmtHora(h.hora_fin)}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-                ); })()}
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8, paddingLeft: 2 }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: TOKENS.success }} /> Inicio
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: TOKENS.primaryHi }} /> Fin
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: TOKENS.textSec }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#0891b2' }} /> Pausa
-                  </span>
-                </div>
+              <div style={{ display: 'grid', gap: 6, marginBottom: 12 }}>
+                {DIAS_SEMANA.map((_, i) => {
+                  const dbDia = i === 6 ? 0 : i + 1;
+                  const turnos = horarios.filter((h) => h.dia_semana === dbDia).sort((a, b) => (a.turno ?? 1) - (b.turno ?? 1));
+                  const isEditing = editDias.includes(dbDia);
+                  return (
+                    <button key={dbDia} type="button" onClick={() => openEditDia(dbDia)} aria-pressed={isEditing}
+                      style={{ width: '100%', display: 'grid', gridTemplateColumns: isMobile ? '84px minmax(0,1fr)' : '150px minmax(0,1fr) 64px', alignItems: 'center', gap: 12, padding: '12px 14px', textAlign: 'left', background: isEditing ? TOKENS.primarySoft : TOKENS.bgCard, border: `1px solid ${isEditing ? TOKENS.primary : TOKENS.border}`, borderRadius: 10, cursor: 'pointer', color: TOKENS.text }}>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>{DIAS_SEMANA_FULL[dbDia]}</span>
+                      <span style={{ display: 'flex', flexWrap: 'wrap', gap: 8, color: turnos.length ? TOKENS.text : TOKENS.textTer, fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>
+                        {turnos.length ? turnos.map((h, j) => <span key={h.id ?? j}>{fmtHora(h.hora_inicio)}–{fmtHora(h.hora_fin)}</span>) : 'Sin turno'}
+                      </span>
+                      {!isMobile && <span style={{ color: TOKENS.primaryHi, fontSize: 12, fontWeight: 700, textAlign: 'right' }}>Editar</span>}
+                    </button>
+                  );
+                })}
               </div>
               {/* Editor inline de horario */}
               {/* Editor inline de horario múltiple */}
@@ -1430,31 +1368,9 @@ export default function EquipoWeb() {
                   </div>
 
                   {/* Jornada */}
-                  <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-                    <div>
-                      <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Inicio Jornada</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }}>
-                        <BtnFlecha onClick={() => adjustEditH('jornadaIni', -1, 0)} />
-                        <NumBox value={editJornadaIni.split(':')[0]} label="h" />
-                        <BtnFlecha onClick={() => adjustEditH('jornadaIni', 1, 0)} plus />
-                        <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
-                        <BtnFlecha onClick={() => adjustEditH('jornadaIni', 0, -15)} />
-                        <NumBox value={editJornadaIni.split(':')[1]} label="m" />
-                        <BtnFlecha onClick={() => adjustEditH('jornadaIni', 0, 15)} plus />
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Fin Jornada</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bg, border: `1px solid ${TOKENS.border}` }}>
-                        <BtnFlecha onClick={() => adjustEditH('jornadaFin', -1, 0)} />
-                        <NumBox value={editJornadaFin.split(':')[0]} label="h" />
-                        <BtnFlecha onClick={() => adjustEditH('jornadaFin', 1, 0)} plus />
-                        <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
-                        <BtnFlecha onClick={() => adjustEditH('jornadaFin', 0, -15)} />
-                        <NumBox value={editJornadaFin.split(':')[1]} label="m" />
-                        <BtnFlecha onClick={() => adjustEditH('jornadaFin', 0, 15)} plus />
-                      </div>
-                    </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 16 }}>
+                    <CampoHora label="Entrada" value={editJornadaIni} onChange={setEditJornadaIni} />
+                    <CampoHora label="Salida" value={editJornadaFin} onChange={setEditJornadaFin} />
                   </div>
 
                   {/* Pausa */}
@@ -1467,31 +1383,9 @@ export default function EquipoWeb() {
                     </div>
                     
                     {editHasPausa && (
-                      <div style={{ display: 'flex', gap: 16 }}>
-                        <div>
-                          <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Inicio Pausa</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
-                            <BtnFlecha onClick={() => adjustEditH('pausaIni', -1, 0)} />
-                            <NumBox value={editPausaIni.split(':')[0]} label="h" />
-                            <BtnFlecha onClick={() => adjustEditH('pausaIni', 1, 0)} plus />
-                            <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
-                            <BtnFlecha onClick={() => adjustEditH('pausaIni', 0, -15)} />
-                            <NumBox value={editPausaIni.split(':')[1]} label="m" />
-                            <BtnFlecha onClick={() => adjustEditH('pausaIni', 0, 15)} plus />
-                          </div>
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 10, color: TOKENS.textTer, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>Fin Pausa</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', borderRadius: 8, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}` }}>
-                            <BtnFlecha onClick={() => adjustEditH('pausaFin', -1, 0)} />
-                            <NumBox value={editPausaFin.split(':')[0]} label="h" />
-                            <BtnFlecha onClick={() => adjustEditH('pausaFin', 1, 0)} plus />
-                            <span style={{ color: TOKENS.textTer, fontSize: 14, fontWeight: 700 }}>:</span>
-                            <BtnFlecha onClick={() => adjustEditH('pausaFin', 0, -15)} />
-                            <NumBox value={editPausaFin.split(':')[1]} label="m" />
-                            <BtnFlecha onClick={() => adjustEditH('pausaFin', 0, 15)} plus />
-                          </div>
-                        </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                        <CampoHora label="Inicio de pausa" value={editPausaIni} onChange={setEditPausaIni} />
+                        <CampoHora label="Fin de pausa" value={editPausaFin} onChange={setEditPausaFin} />
                       </div>
                     )}
                   </div>
@@ -1518,12 +1412,18 @@ export default function EquipoWeb() {
             </Section>
             </div>
               </div>
-              {/* Columna derecha: bloqueos · leyenda */}
-              <div>
+              <div style={{ display: detalleTab === 'bloqueos' ? 'block' : 'none' }}>
 
-            {/* Bloques header */}
+            <p style={{ margin: '0 0 14px', color: TOKENS.textSec, fontSize: 13, lineHeight: 1.5 }}>
+              Aquí se gestionan descansos, vacaciones, bajas y demás bloqueos del profesional. Los que se crean desde Agenda aparecen también aquí; las solicitudes pendientes se aprueban en Bandeja.
+            </p>
+            {errorBloqueos && <p role="alert" style={{ color: '#b42318', fontSize: 13 }}>{errorBloqueos}</p>}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ fontSize: 10, letterSpacing: 1.5, color: TOKENS.textTer, textTransform: 'uppercase', fontWeight: 600 }}>Bloqueos próximos</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <button type="button" aria-label="Mes anterior" onClick={() => { setMesCalendario((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1)); setDiaCalendarioSel(null); }} style={{ border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCard, borderRadius: 8, padding: '6px 10px', cursor: 'pointer' }}>‹</button>
+                <span style={{ minWidth: 120, textAlign: 'center', color: TOKENS.text, fontSize: 13, fontWeight: 700 }}>{mesCalendario.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).replace(/^./, (c) => c.toUpperCase())}</span>
+                <button type="button" aria-label="Mes siguiente" onClick={() => { setMesCalendario((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1)); setDiaCalendarioSel(null); }} style={{ border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCard, borderRadius: 8, padding: '6px 10px', cursor: 'pointer' }}>›</button>
+              </div>
               <button
                 onClick={() => setShowNewBloqueo(true)}
                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.background = 'rgba(244,80,30,0.18)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(244,80,30,0.35)'; }}
@@ -1550,10 +1450,10 @@ export default function EquipoWeb() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
-              {bloqueos.length === 0 && (
-                <div style={{ fontSize: 12, color: TOKENS.textTer, padding: '10px 0' }}>Sin bloqueos próximos</div>
+              {bloqueosMes.length === 0 && (
+                <div style={{ fontSize: 12, color: TOKENS.textTer, padding: '14px 0' }}>Sin bloqueos en este mes.</div>
               )}
-              {bloqueos.map((b) => {
+              {bloqueosMes.map((b) => {
                 const cfg = TIPO_CONFIG[b.tipo] ?? { label: b.tipo, color: TOKENS.textTer };
                 const mismodia = new Date(b.inicio).toDateString() === new Date(b.fin).toDateString();
                 const fechaStr = mismodia
@@ -1575,9 +1475,16 @@ export default function EquipoWeb() {
                       {b.recurrencia && <span style={{ fontSize: 11, color: TOKENS.textTer, fontWeight: 600 }}>· {fmtRecurrencia(b.recurrencia) ?? b.recurrencia}</span>}
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: TOKENS.text }}>{fechaStr}</div>
-                    {b.motivo && <div style={{ fontSize: 11, color: TOKENS.textSec, marginTop: 2 }}>{b.motivo}</div>}
+                    {b.motivo?.startsWith('[PENDIENTE]') && <div style={{ fontSize: 11, color: '#b45309', fontWeight: 700, marginTop: 3 }}>Pendiente de aprobación</div>}
+                    {b.motivo && <div style={{ fontSize: 11, color: TOKENS.textSec, marginTop: 2 }}>{b.motivo.replace(/^\[PENDIENTE\]\s*/, '')}</div>}
                   </div>
-                  <div style={{ position: 'relative', alignSelf: 'center' }}>
+                  {b.motivo?.startsWith('[PENDIENTE]') ? (
+                    <button
+                      onClick={() => router.push('/(tabs)/bandeja' as never)}
+                      style={{ alignSelf: 'center', padding: '8px 12px', borderRadius: 9, border: `1px solid ${TOKENS.borderHi}`, background: TOKENS.bgPanel, color: TOKENS.text, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                      Revisar
+                    </button>
+                  ) : <div style={{ position: 'relative', alignSelf: 'center' }}>
                     <button
                       onClick={(e) => { e.stopPropagation(); setMenuBloqueoId(menuBloqueoId === b.id ? null : b.id); }}
                       style={{
@@ -1621,7 +1528,7 @@ export default function EquipoWeb() {
                         </button>
                       </div>
                     )}
-                  </div>
+                  </div>}
                 </div>
                 );
               })}
@@ -1629,7 +1536,7 @@ export default function EquipoWeb() {
 
             {/* Tipos de bloqueo */}
             <Section title="Tipos de bloqueo">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {[
                   { l: 'Vacaciones', c: '#f59e0b' },
                   { l: 'Formación', c: '#c0260a' },
@@ -1638,8 +1545,8 @@ export default function EquipoWeb() {
                   { l: 'Descanso', c: '#10b981' },
                   { l: 'Otro', c: '#94a3b8' },
                 ].map((t, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 10, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 10 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: 3, background: t.c, boxShadow: `0 0 8px ${t.c}66` }} />
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 10px', background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 9 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 3, background: t.c }} />
                     <span style={{ fontSize: 12, color: TOKENS.text, fontWeight: 500 }}>{t.l}</span>
                   </div>
                 ))}
@@ -1647,32 +1554,7 @@ export default function EquipoWeb() {
             </Section>
 
             {/* Calendario mensual visual */}
-            <Section
-              title="Vista mensual"
-              right={
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <button
-                    type="button"
-                    onClick={() => { setMesCalendario(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)); setDiaCalendarioSel(null); }}
-                    title="Mes anterior"
-                    style={{ width: 24, height: 24, borderRadius: 7, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCard, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 700 }}
-                  >
-                    ‹
-                  </button>
-                  <span style={{ fontSize: 11.5, fontWeight: 700, color: TOKENS.textSec, minWidth: 84, textAlign: 'center', textTransform: 'capitalize' }}>
-                    {mesCalendario.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => { setMesCalendario(d => new Date(d.getFullYear(), d.getMonth() + 1, 1)); setDiaCalendarioSel(null); }}
-                    title="Mes siguiente"
-                    style={{ width: 24, height: 24, borderRadius: 7, border: `1px solid ${TOKENS.border}`, background: TOKENS.bgCard, color: TOKENS.textSec, cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: 13, fontWeight: 700 }}
-                  >
-                    ›
-                  </button>
-                </div>
-              }
-            >
+            <Section title="Vista mensual">
               {(() => {
                 const now = new Date();
                 const year = mesCalendario.getFullYear();
@@ -1818,7 +1700,7 @@ export default function EquipoWeb() {
 
       {showNewProf && <NewProfModal onClose={() => setShowNewProf(false)} negocioId={negocioId} onCreated={() => { setShowNewProf(false); setRecargaTick(t => t + 1); }} />}
       {editingProf && <EditProfModal prof={editingProf} negocioId={negocioId} cuenta={cuentasPorFicha[editingProf.id] ?? null} onClose={() => setEditingProf(null)} onSaved={() => { setEditingProf(null); setRecargaTick(t => t + 1); }} />}
-      {showNewBloqueo && <NewBloqueoModal profesionales={profesionales} selectedId={selected} negocioId={negocioId} onClose={() => setShowNewBloqueo(false)} onCreated={() => { setShowNewBloqueo(false); setRecargaTick(t => t + 1); if (selected) cargarPanelDerecho(selected); }} />}
+      {showNewBloqueo && <NewBloqueoModal profesionales={profesionales} selectedId={selected} negocioId={negocioId} onClose={() => setShowNewBloqueo(false)} onCreated={(fecha) => { setShowNewBloqueo(false); setMesCalendario(new Date(`${fecha}T12:00:00`)); setBloqueosVersion((v) => v + 1); }} />}
       {showManualPanel && (
         <ManualPanel
           content={manualEquipo}
@@ -1826,7 +1708,7 @@ export default function EquipoWeb() {
           onClose={() => setShowManualPanel(false)}
         />
       )}
-      {editBloqueo && <EditBloqueoModal bloqueo={editBloqueo} onClose={() => setEditBloqueo(null)} onSaved={() => { setEditBloqueo(null); cargarPanelDerecho(); }} />}
+      {editBloqueo && <EditBloqueoModal bloqueo={editBloqueo} negocioId={negocioId} onClose={() => setEditBloqueo(null)} onSaved={() => { setEditBloqueo(null); setBloqueosVersion((v) => v + 1); }} />}
       </div>
     </div>
   );
@@ -2529,42 +2411,22 @@ const DIAS_SEMANA_FULL = [
   { value: 0, label: 'Dom' },
 ];
 
-function BtnFlecha({ onClick, plus }: { onClick: () => void; plus?: boolean }) {
+function CampoHora({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        width: 28, height: 28, borderRadius: 7,
-        background: 'rgba(148,163,184,0.08)',
-        border: `1px solid ${TOKENS.border}`,
-        color: TOKENS.textSec,
-        cursor: 'pointer',
-        fontSize: 16, fontWeight: 700,
-        display: 'grid', placeItems: 'center',
-        fontFamily: 'inherit',
-        flexShrink: 0,
-      }}
-    >
-      {plus ? '+' : '-'}
-    </button>
+    <label style={{ display: 'grid', gap: 5, minWidth: 0, fontSize: 12, fontWeight: 700, color: TOKENS.textSec }}>
+      {label}
+      <input type="time" step={900} value={value} onChange={(event) => onChange(event.target.value)}
+        style={{ boxSizing: 'border-box', width: '100%', minHeight: 42, padding: '8px 11px', border: `1px solid ${TOKENS.borderHi}`, borderRadius: 9, background: TOKENS.bgPanel, color: TOKENS.text, fontSize: 15, fontFamily: 'inherit', fontVariantNumeric: 'tabular-nums' }} />
+    </label>
   );
 }
 
+function BtnFlecha({ onClick, plus }: { onClick: () => void; plus?: boolean }) {
+  return <button type="button" onClick={onClick} style={{ width: 28, height: 28, borderRadius: 7, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, color: TOKENS.textSec, cursor: 'pointer', fontSize: 16, fontWeight: 700, flexShrink: 0 }}>{plus ? '+' : '-'}</button>;
+}
+
 function NumBox({ value, label }: { value: string; label: string }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'baseline', gap: 2,
-      padding: '5px 10px', borderRadius: 8,
-      background: 'rgba(244,80,30,0.13)',
-      border: '1px solid rgba(244,80,30,0.22)',
-      minWidth: label === 'h' ? 46 : 52,
-      justifyContent: 'center',
-    }}>
-      <span style={{ fontSize: 17, fontWeight: 700, color: TOKENS.primary, fontFamily: 'inherit' }}>{value}</span>
-      <span style={{ fontSize: 10, fontWeight: 600, color: TOKENS.primary, fontFamily: 'inherit' }}>{label}</span>
-    </div>
-  );
+  return <span style={{ padding: '5px 8px', borderRadius: 7, background: TOKENS.primarySoft, color: TOKENS.primaryHi, fontSize: 15, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{value}<small style={{ marginLeft: 2 }}>{label}</small></span>;
 }
 
 function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCreated }: {
@@ -2572,7 +2434,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
   selectedId: string | null;
   negocioId: string;
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (fecha: string) => void;
 }) {
   const { isMobile } = useResponsive();
   const [tipo, setTipo] = useState('vacaciones');
@@ -2790,7 +2652,9 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
     try {
       for (const [citaId, accion] of Object.entries(accionesConflicto)) {
         if (accion === 'cancelar') {
-          await supabase.from('citas').update({ estado: 'cancelada' }).eq('id', citaId);
+          const { error } = await supabase.from('citas').update({ estado: 'cancelada' })
+            .eq('negocio_id', negocioId).eq('id', citaId);
+          if (error) throw error;
         }
       }
 
@@ -2803,7 +2667,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
       for (const profId of profsSeleccionados) {
         if (!esRecurrente) {
           if (rangosNoRecurrente.length > 0) {
-            await supabase.from('bloqueos_profesional').insert(
+            const { error } = await supabase.from('bloqueos_profesional').insert(
               rangosNoRecurrente.map((r) => ({
                 profesional_id: profId,
                 negocio_id: negocioId,
@@ -2814,6 +2678,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
                 grupo_bloqueo_id: grupoId,
               }))
             );
+            if (error) throw error;
           }
         } else {
           const recurrenciaJson = JSON.stringify({
@@ -2823,7 +2688,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
             fecha_fin: fechaFinRecurrencia,
           });
 
-          const { data: padre } = await supabase.from('bloqueos_profesional').insert({
+          const { data: padre, error: padreError } = await supabase.from('bloqueos_profesional').insert({
             profesional_id: profId,
             negocio_id: negocioId,
             tipo,
@@ -2837,6 +2702,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
             recurrencia: recurrenciaJson,
             grupo_bloqueo_id: grupoId,
           }).select('id').single();
+          if (padreError) throw padreError;
 
           if (padre?.id) {
             const instancias = generarInstancias(
@@ -2854,12 +2720,13 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
               grupo_bloqueo_id: grupoId,
             }));
             if (hijas.length > 0) {
-              await supabase.from('bloqueos_profesional').insert(hijas);
+              const { error: hijasError } = await supabase.from('bloqueos_profesional').insert(hijas);
+              if (hijasError) throw hijasError;
             }
           }
         }
       }
-      onCreated();
+      onCreated(!esRecurrente ? (Array.from(diasSeleccionados).sort()[0] ?? fechaInicio) : fechaInicio);
     } catch (e: any) {
       setLoading(false);
       setErrorCreacion(
@@ -3431,7 +3298,7 @@ function NewBloqueoModal({ profesionales, selectedId, negocioId, onClose, onCrea
   );
 }
 
-function EditBloqueoModal({ bloqueo, onClose, onSaved }: { bloqueo: any; onClose: () => void; onSaved: () => void }) {
+function EditBloqueoModal({ bloqueo, negocioId, onClose, onSaved }: { bloqueo: any; negocioId: string; onClose: () => void; onSaved: () => void }) {
   const { isMobile } = useResponsive();
   const [tipo, setTipo] = useState(bloqueo.tipo || 'vacaciones');
   const [motivo, setMotivo] = useState(bloqueo.motivo || '');
@@ -3450,6 +3317,7 @@ function EditBloqueoModal({ bloqueo, onClose, onSaved }: { bloqueo: any; onClose
   const [horaInicio, setHoraInicio] = useState(isFullDay ? '09:00' : hIni);
   const [horaFin, setHoraFin] = useState(isFullDay ? '18:00' : hFin);
   const [saving, setSaving] = useState(false);
+  const [errorGuardar, setErrorGuardar] = useState('');
   const dateInicioRef = useRef<HTMLInputElement>(null);
   const dateFinRef = useRef<HTMLInputElement>(null);
 
@@ -3474,16 +3342,28 @@ function EditBloqueoModal({ bloqueo, onClose, onSaved }: { bloqueo: any; onClose
   }
 
   async function guardar() {
+    setErrorGuardar('');
+    if (fechaFin < fechaInicio || (!todoElDia && fechaFin === fechaInicio && horaFin <= horaInicio)) {
+      setErrorGuardar('La fecha y hora de fin deben ser posteriores al inicio.');
+      return;
+    }
     setSaving(true);
+    try {
     const ini = todoElDia
       ? new Date(`${fechaInicio}T00:00:00`).toISOString()
       : new Date(`${fechaInicio}T${horaInicio}:00`).toISOString();
     const fin = todoElDia
       ? new Date(`${fechaFin}T23:59:00`).toISOString()
       : new Date(`${fechaFin}T${horaFin}:00`).toISOString();
-    await supabase.from('bloqueos_profesional').update({ tipo, motivo: motivo || null, inicio: ini, fin }).eq('id', bloqueo.id);
-    setSaving(false);
+    const { error } = await supabase.from('bloqueos_profesional').update({ tipo, motivo: motivo || null, inicio: ini, fin })
+      .eq('negocio_id', negocioId).eq('id', bloqueo.id);
+    if (error) throw error;
     onSaved();
+    } catch (error) {
+      setErrorGuardar(mensajeDeError(error, 'No se pudo guardar el bloqueo.'));
+    } finally {
+      setSaving(false);
+    }
   }
 
   const TIPOS = ['vacaciones', 'formacion', 'reunion', 'baja', 'descanso', 'otro'];
@@ -3578,6 +3458,7 @@ function EditBloqueoModal({ bloqueo, onClose, onSaved }: { bloqueo: any; onClose
         {/* Botones */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button onClick={onClose} style={{ padding: '9px 14px', background: 'transparent', color: TOKENS.textSec, border: `1px solid ${TOKENS.border}`, borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancelar</button>
+          {errorGuardar && <span role="alert" style={{ color: '#b42318', fontSize: 12 }}>{errorGuardar}</span>}
           <button onClick={guardar} disabled={saving} style={{ padding: '9px 14px', background: `linear-gradient(180deg,#ff7a2e 0%,#f4501e 100%)`, color: '#fff', border: 'none', borderRadius: 10, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(244,80,30,0.45)', opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Guardando...' : 'Guardar cambios'}
           </button>

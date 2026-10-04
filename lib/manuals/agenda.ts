@@ -7,8 +7,12 @@ export const manualAgenda: ManualContent = {
   secciones: [
     {
       titulo: 'Crear una cita',
-      texto: 'Pulsa "Nueva cita" arriba a la derecha (en móvil, "Cita"), o haz clic directamente sobre un hueco vacío de la rejilla para prellenar la hora y el profesional. Elige servicio, profesional y cliente para confirmarla.',
+      texto: 'Pulsa "Nueva cita" arriba a la derecha (en móvil, "Cita"), o haz clic en un hueco vacío de la rejilla y elige "Una cita". La hora y el profesional se rellenan automáticamente; elige servicio y cliente para confirmarla.',
       captura: '/manuals/agenda/nueva-cita.png',
+    },
+    {
+      titulo: 'Bloquear un hueco',
+      texto: 'Haz clic en un hueco de la agenda y elige "Bloquear el hueco". Selecciona descanso, ausencia, reunión, formación o vacaciones, la duración y una nota si la necesitas. El bloqueo queda asignado al profesional y la hora del hueco elegido.',
     },
     {
       titulo: 'Cambiar de vista',

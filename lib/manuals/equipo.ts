@@ -3,7 +3,7 @@ import type { ManualContent } from './types';
 export const manualEquipo: ManualContent = {
   pageKey: 'equipo',
   tituloPagina: 'Equipo',
-  avisoTexto: 'Aquí das de alta a tu personal, defines su horario, ves cómo rinde el equipo y llevas su control horario.',
+  avisoTexto: 'Aquí gestionas las personas, su horario semanal y todos sus bloqueos y ausencias. El registro de jornada tiene una vista aparte.',
   secciones: [
     {
       titulo: 'Añadir un profesional',
@@ -19,13 +19,13 @@ export const manualEquipo: ManualContent = {
     },
     {
       titulo: 'Dos horarios que no son lo mismo',
-      texto: 'El horario de APERTURA del salón (a qué hora abre y cierra el local, y su cierre del mediodía) se toca una sola vez en Configuración › Horarios; el botón "Horario del salón" te lleva ahí. El horario de TRABAJO de cada persona se toca en su ficha, en "Horario de trabajo de …", con la opción de partir el día en dos turnos. Si el horario de alguien se sale de lo que abre el local, Mecha te lo avisa en su propia ficha con el día concreto.',
+      texto: 'El horario de APERTURA del salón se cambia en Configuración › Horarios. El horario de TRABAJO de cada persona se cambia en Equipo: abre su nombre y entra en la pestaña "Horario semanal". Cada día muestra sus turnos en una fila; al pulsarlo puedes editar entrada, salida y pausa. Si se sale de la apertura del salón, Mecha te avisa.',
       captura: '/manuals/equipo/horarios.png',
       highlight: { top: '27%', left: '33%', width: '64%', height: '70%' },
     },
     {
-      titulo: 'Bloqueos puntuales',
-      texto: 'En la ficha del profesional, "Bloqueos próximos" tiene el botón "+ Nuevo": elige el tipo (Vacaciones, Formación, Reunión, Baja, Descanso u Otro), el rango de fechas (y de horas, si desmarcas "Todo el dia") y un motivo opcional. Puedes marcarlo como recurrente para descansos fijos. Esos huecos dejan de estar disponibles sin tocar el horario base.',
+      titulo: 'Bloqueos y ausencias',
+      texto: 'Abre a una persona y entra en "Bloqueos y ausencias". La lista y el calendario muestran todos los bloqueos del mes; usa las flechas para ver otros meses. "+ Nuevo" permite crear vacaciones, formación, reunión, baja, descanso u otro bloqueo, también recurrente. Los creados desde la Agenda aparecen aquí porque usan la misma tabla. Las solicitudes pendientes de "Mi jornada" se aprueban en Bandeja.',
     },
     {
       titulo: 'Control horario del equipo',

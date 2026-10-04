@@ -38,7 +38,7 @@ export const manualMiJornada: ManualContent = {
     },
     {
       titulo: 'Pedir una ausencia',
-      texto: 'Pulsa "Pedir Ausencia" (arriba a la derecha) e indica las fechas de inicio y fin, el motivo ("Vacaciones", "Baja Médica" o "Asuntos Propios") y notas si quieres. La solicitud queda pendiente de aprobación y esos días dejan de ofrecerse en tu agenda. Las ves en "Mis ausencias", donde puedes retirar las que aún no han pasado.',
+      texto: 'Pulsa "Pedir Ausencia" e indica las fechas, el motivo y notas si quieres. La solicitud queda pendiente de aprobación en Bandeja y bloquea esas fechas en la Agenda. En "Mis bloqueos y ausencias" ves también los descansos y demás bloqueos de tu profesional; solo puedes retirar tus solicitudes pendientes. La gestión completa está en Equipo.',
       captura: '/manuals/mi-jornada/ausencia.png',
     },
     {

@@ -1808,7 +1808,7 @@ function DayTimeline({
                                 }
                               }
                             }}
-                            title={`Crear cita a las ${horaSlot}`}
+                            title={`Crear cita o bloqueo a las ${horaSlot}`}
                             style={{
                               flex: 1,
                               borderTop:

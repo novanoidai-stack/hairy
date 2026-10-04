@@ -442,8 +442,9 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
         const { data: ausData } = await supabase
           .from('bloqueos_profesional')
           .select('id, inicio, fin, tipo, motivo')
+          .eq('negocio_id', profile.negocio_id)
           .eq('profesional_id', profId)
-          .in('tipo', ['vacaciones', 'baja', 'formacion', 'ausencia'])
+          .neq('tipo', 'reserva_temporal')
           .gte('fin', new Date(Date.now() - 30 * 86400000).toISOString())
           .order('inicio', { ascending: true })
           .limit(20);
@@ -543,8 +544,13 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
 
   const eliminarAusencia = async (id: string) => {
     try {
-      const { error: delErr } = await supabase.from('bloqueos_profesional').delete().eq('id', id);
+      const profId = resumen?.profesional?.id;
+      if (!profId || !negocioId) return;
+      const { data: eliminadas, error: delErr } = await supabase.from('bloqueos_profesional').delete()
+        .eq('negocio_id', negocioId).eq('profesional_id', profId).eq('id', id)
+        .ilike('motivo', '[PENDIENTE]%').select('id');
       if (delErr) throw delErr;
+      if (!eliminadas?.length) throw new Error('Esta solicitud ya no está pendiente. Actualiza la pantalla.');
       setAusencias(prev => prev.filter(a => a.id !== id));
     } catch (err) {
       setError(mensajeDeError(err));
@@ -748,6 +754,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
             </button>
             <button
               onClick={() => setShowAusenciaModal(true)}
+              disabled={!vinculado}
               className="btn-interactive"
               style={{ padding: '6px 12px', borderRadius: 9, background: T.bgCard, border: `1px solid ${T.border}`, color: T.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6 }}
             >
@@ -981,7 +988,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                 touchAction: 'manipulation',
               }}
             >
-              Ausencias
+              Bloqueos
             </button>
             <button
               onClick={() => setSubTab('registro')}
@@ -1206,21 +1213,22 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Icon name="calendar" size={14} color={T.primaryHi} />
                 <div style={{ fontSize: 11, color: T.textTer, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                  Mis ausencias
+                  Mis bloqueos y ausencias
                 </div>
               </div>
             </div>
             {ausencias.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '24px 20px', background: T.bgCard, borderRadius: 12, border: `1px dashed ${T.border}`, color: T.textSec, fontSize: 13 }}>
-                No tienes ausencias registradas.
+                No tienes bloqueos registrados.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {ausencias.map((a) => {
-                  const TIPO_COLORS: Record<string, string> = { vacaciones: '#0f9d6b', baja: '#e23b34', formacion: '#6366f1', ausencia: '#e08a00' };
-                  const TIPO_LABELS: Record<string, string> = { vacaciones: 'Vacaciones', baja: 'Baja médica', formacion: 'Formación', ausencia: 'Ausencia' };
+                  const TIPO_COLORS: Record<string, string> = { vacaciones: '#e08a00', baja: '#e23b34', formacion: '#c0260a', descanso: '#0f9d6b', reunion: '#3b82f6', otro: '#8a7d70' };
+                  const TIPO_LABELS: Record<string, string> = { vacaciones: 'Vacaciones', baja: 'Baja médica', formacion: 'Formación', descanso: 'Descanso', reunion: 'Reunión', otro: 'Otro bloqueo' };
                   const col = TIPO_COLORS[a.tipo] || T.textSec;
                   const isPast = new Date(a.fin) < new Date();
+                  const pendiente = a.motivo?.startsWith('[PENDIENTE]') ?? false;
                   return (
                     <div key={a.id} className="mj-row" style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 12, padding: '12px 14px', opacity: isPast ? 0.6 : 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -1231,11 +1239,12 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
                         <span style={{ fontSize: 12, color: T.textSec, fontVariantNumeric: 'tabular-nums' }}>
                           {format(parseISO(a.inicio), 'd MMM', { locale: es })} — {format(parseISO(a.fin), 'd MMM yyyy', { locale: es })}
                         </span>
-                        {!isPast && (
-                          <button onClick={() => eliminarAusencia(a.id)} className="btn-interactive" title="Eliminar" style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 16, cursor: 'pointer', padding: '0 4px' }}>×</button>
+                        {pendiente && <span style={{ fontSize: 11, fontWeight: 700, color: '#b45309' }}>Pendiente</span>}
+                        {!isPast && pendiente && (
+                          <button onClick={() => eliminarAusencia(a.id)} className="btn-interactive" title="Cancelar solicitud pendiente" style={{ background: 'none', border: 'none', color: T.textTer, fontSize: 16, cursor: 'pointer', padding: '0 4px' }}>×</button>
                         )}
                       </div>
-                      {a.motivo && <div style={{ fontSize: 12, color: T.textSec, marginTop: 6, paddingLeft: 18 }}>{a.motivo}</div>}
+                      {a.motivo && <div style={{ fontSize: 12, color: T.textSec, marginTop: 6, paddingLeft: 18 }}>{a.motivo.replace(/^\[PENDIENTE\]\s*/, '')}</div>}
                     </div>
                   );
                 })}
@@ -1406,7 +1415,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
       )}
 
       {showAusenciaModal && (
-        <SolicitudAusenciaModal onClose={() => setShowAusenciaModal(false)} />
+        <SolicitudAusenciaModal profesionalId={resumen?.profesional?.id ?? ''} onClose={() => setShowAusenciaModal(false)} onCreated={() => { setShowAusenciaModal(false); cargar(periodo); }} />
       )}
 
       {showManualPanel && (
@@ -1441,7 +1450,7 @@ FORMATO OBLIGATORIO (nada de párrafos de prosa corridos), tono amistoso y motiv
   );
 }
 
-function SolicitudAusenciaModal({ onClose }: { onClose: () => void }) {
+function SolicitudAusenciaModal({ profesionalId, onClose, onCreated }: { profesionalId: string; onClose: () => void; onCreated: () => void }) {
   const c = T;
   const [inicio, setInicio] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [fin, setFin] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -1457,6 +1466,7 @@ function SolicitudAusenciaModal({ onClose }: { onClose: () => void }) {
     try {
       const profile = await getUserProfile();
       if (!profile) throw new Error('No auth');
+      if (!profesionalId) throw new Error('Tu cuenta no está vinculada a un profesional.');
       const dbMotivo = `[PENDIENTE] ${motivo}${notas ? ' - ' + notas : ''}`;
       // El CHECK de bloqueos_profesional solo admite: vacaciones, formacion,
       // descanso, baja, otro, reserva_temporal. 'ausencia' no existe y hacia
@@ -1464,14 +1474,14 @@ function SolicitudAusenciaModal({ onClose }: { onClose: () => void }) {
       const tipoBloqueo = motivo === 'Vacaciones' ? 'vacaciones' : motivo === 'Baja Médica' ? 'baja' : 'otro';
       const { error: err } = await supabase.from('bloqueos_profesional').insert({
         negocio_id: profile.negocio_id,
-        profesional_id: profile.id,
+        profesional_id: profesionalId,
         inicio: `${inicio}T00:00:00`,
         fin: `${fin}T23:59:59`,
         tipo: tipoBloqueo,
         motivo: dbMotivo
       });
       if (err) throw err;
-      onClose();
+      onCreated();
     } catch (e: any) {
       setError(e.message || 'Error al solicitar');
     } finally {

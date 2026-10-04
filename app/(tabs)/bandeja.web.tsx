@@ -467,7 +467,9 @@ function BandejaScreen() {
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button 
                         onClick={async () => {
-                          await supabase.from('bloqueos_profesional').delete().eq('id', aus.id);
+                          const { error } = await supabase.from('bloqueos_profesional').delete()
+                            .eq('negocio_id', aus.negocio_id).eq('id', aus.id);
+                          if (error) { setMensaje(mensajeDeError(error)); return; }
                           cargarAusenciasPendientes();
                         }}
                         style={{ padding: '8px 16px', borderRadius: 8, background: T.card, border: `1px solid ${T.border}`, color: T.danger, fontWeight: 600, cursor: 'pointer' }}
@@ -475,7 +477,9 @@ function BandejaScreen() {
                       <button 
                         onClick={async () => {
                           const nuevoMotivo = (aus.motivo || '').replace('[PENDIENTE] ', '');
-                          await supabase.from('bloqueos_profesional').update({ motivo: nuevoMotivo }).eq('id', aus.id);
+                          const { error } = await supabase.from('bloqueos_profesional').update({ motivo: nuevoMotivo })
+                            .eq('negocio_id', aus.negocio_id).eq('id', aus.id);
+                          if (error) { setMensaje(mensajeDeError(error)); return; }
                           cargarAusenciasPendientes();
                         }}
                         style={{ padding: '8px 16px', borderRadius: 8, background: T.success, border: 'none', color: '#fff', fontWeight: 600, cursor: 'pointer' }}

@@ -31,13 +31,14 @@ import { mensajeDeError } from '@/lib/errores';
 /** Tipos de `bloqueos_profesional` que tiene sentido que elija una persona. */
 const TIPOS_BLOQUEO = [
   { tipo: 'descanso', etiqueta: 'Descanso', ayuda: 'Comida, cafe, un rato fuera' },
-  { tipo: 'baja', etiqueta: 'Ausencia', ayuda: 'Medico, asunto propio, baja' },
+  { tipo: 'baja', etiqueta: 'Baja médica', ayuda: 'Ausencia por baja médica' },
+  { tipo: 'otro', etiqueta: 'Otra ausencia', ayuda: 'Asunto propio u otra falta de disponibilidad' },
   { tipo: 'reunion', etiqueta: 'Reunion', ayuda: 'Con el equipo o con proveedores' },
   { tipo: 'formacion', etiqueta: 'Formacion', ayuda: 'Curso o taller' },
   { tipo: 'vacaciones', etiqueta: 'Vacaciones', ayuda: 'Dias libres' },
 ] as const;
 
-const DURACIONES = [30, 60, 90, 120, 240] as const;
+const DURACIONES = [15, 30, 45, 60, 90, 120, 240] as const;
 
 export function SelectorCreacionAgenda({
   abierto,
@@ -209,7 +210,7 @@ export function SelectorCreacionAgenda({
                   color: TOKENS.textTer,
                 }}
               >
-                Descanso, ausencia, reunion, formacion o vacaciones
+                Descanso, ausencia, baja, reunion o vacaciones
               </span>
             </button>
           </>

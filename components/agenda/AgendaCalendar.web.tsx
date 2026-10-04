@@ -1266,8 +1266,14 @@ export default function AgendaCalendar() {
       profId: string;
       reposoContext?: any;
     }) => {
-      setNewCitaPrefill({ hora, profId, reposoContext });
-      setShowNewCita(true);
+      // En un reposo solo cabe otra cita. En el resto de huecos se puede
+      // elegir entre cita y falta de disponibilidad para ese profesional.
+      if (reposoContext) {
+        setNewCitaPrefill({ hora, profId, reposoContext });
+        setShowNewCita(true);
+        return;
+      }
+      setSlotElegido({ hora, profId });
     },
     [],
   );
@@ -5422,30 +5428,7 @@ export default function AgendaCalendar() {
                     setSelectedCitaEdit(cita);
                     setShowEditCita(true);
                   }}
-                  onCreateSlot={({
-                    hora,
-                    profId,
-                    reposoContext,
-                  }: {
-                    hora: string;
-                    profId: string;
-                    reposoContext?: any;
-                  }) => {
-                    // Peticion 6 de Jose: el hueco ya no abre la cita a bocajarro,
-                    // pregunta primero. El atajo sirve para apuntar un descanso o
-                    // una ausencia sin salir a Equipo, con la agenda delante.
-                    //
-                    // EXCEPCION: un hueco de REPOSO. Ahi solo cabe una cita --es
-                    // el diferencial del producto, encajar a otra clienta mientras
-                    // el tinte reposa-- y nadie va a bloquear el reposo de otra.
-                    // Preguntar ahi seria un peaje sin ninguna alternativa detras.
-                    if (reposoContext) {
-                      setNewCitaPrefill({ hora, profId, reposoContext });
-                      setShowNewCita(true);
-                      return;
-                    }
-                    setSlotElegido({ hora, profId, reposoContext });
-                  }}
+                  onCreateSlot={dtCreateSlot}
                   selectedDateObj={selectedDateObj}
                   theme={roleTheme}
                 />

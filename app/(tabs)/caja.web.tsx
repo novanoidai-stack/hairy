@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useLocalSearchParams } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { getUserProfile } from "@/lib/auth";
 import { withClientDataGate } from "@/components/PrivacyGateOverlay";
@@ -162,6 +163,11 @@ function fmtFechaHora(iso: string | null | undefined): string {
 // ─────────────────────────────────────────────────────────────────────────────────
 function CajaScreen() {
   const { isMobile } = useResponsive();
+  const params = useLocalSearchParams<{ seccion?: string }>();
+  const [vistaCaja, setVistaCaja] = useState<'cobros' | 'gastos'>(params.seccion === 'gastos' ? 'gastos' : 'cobros');
+  useEffect(() => {
+    setVistaCaja(params.seccion === 'gastos' ? 'gastos' : 'cobros');
+  }, [params.seccion]);
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista("caja");
   const [citas, setCitas] = useState<CitaPendiente[]>([]);
@@ -850,8 +856,7 @@ function CajaScreen() {
                 margin: 0,
               }}
             >
-              Cobra las citas completadas, controla el arqueo del día y la
-              jornada del equipo.
+              {vistaCaja === 'gastos' ? 'Registra y consulta los gastos del salón.' : 'Cobra citas, consulta los cobros y controla el arqueo del día.'}
             </p>
           </div>
           <div
@@ -863,7 +868,7 @@ function CajaScreen() {
               flexWrap: "wrap",
             }}
           >
-            {canSeeAll && (
+            {canSeeAll && vistaCaja === 'cobros' && (
               <>
                 <button
                   onClick={async () => {
@@ -988,6 +993,22 @@ function CajaScreen() {
             <AvisosBell mode="header" />
           </div>
         </div>
+
+        {canSeeAll && (
+          <div role="tablist" aria-label="Secciones de Caja" style={{ display: 'flex', gap: 4, padding: 4, marginBottom: 18, border: `1px solid ${T.border}`, borderRadius: 11, background: T.card, width: 'fit-content' }}>
+            {(['cobros', 'gastos'] as const).map((vista) => (
+              <button key={vista} type="button" role="tab" aria-selected={vistaCaja === vista} onClick={() => setVistaCaja(vista)}
+                style={{ padding: '9px 18px', border: 'none', borderRadius: 8, background: vistaCaja === vista ? T.primary : 'transparent', color: vistaCaja === vista ? '#fff' : T.textSec, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                {vista === 'cobros' ? 'Cobros' : 'Gastos'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {vistaCaja === 'gastos' && canSeeAll ? (
+          <div style={{ maxWidth: 1100 }}><GastosSection /></div>
+        ) : (
+          <>
 
         {/* Abrir y cerrar la caja del dia. Solo gestion: las RPC lo comprueban
             tambien en servidor, esto es para no enseñar un boton que fallaria. */}
@@ -1155,23 +1176,6 @@ function CajaScreen() {
               </div>
             );
           })()}
-
-        {/* GASTOS (peticion 14 de Jose, 6 sep 2026).
-            Vivian SOLO dentro de Informes, que es donde se va a mirar el pasado;
-            pero un gasto se apunta cuando ocurre --llega el pedido, se paga el
-            alquiler-- y ese momento es el de la caja. Ahora estan en los dos
-            sitios, como pidio, y es EL MISMO componente: duplicarlo habria sido
-            duplicar tambien el formulario, las categorias y el desglose.
-            El componente ya se limita solo por rol (canAccessInformes), pero se
-            envuelve en canSeeAll igual que el resto del dinero de esta pantalla. */}
-        {canSeeAll && (
-          <div style={{ marginBottom: 16 }}>
-            {/* Sin onGastosChange: en Caja no hay nada que recalcular al apuntar
-                un gasto. El arqueo del dia es de COBROS -- lo que entro por caja
-                y datafono -- y meter ahi los gastos descuadraria el cierre. */}
-            <GastosSection />
-          </div>
-        )}
 
         {/* Registros descargables (CSV) — solo propietario/dirección */}
         {canSeeAll && cobrosHoy.length > 0 && (
@@ -2240,6 +2244,8 @@ function CajaScreen() {
               ))}
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
       {/* fin contenedor con scroll */}

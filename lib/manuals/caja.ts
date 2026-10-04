@@ -3,7 +3,7 @@ import type { ManualContent } from './types';
 export const manualCaja: ManualContent = {
   pageKey: 'caja',
   tituloPagina: 'Caja',
-  avisoTexto: 'Aquí cobras las citas completadas, controlas el arqueo del día y vendes productos, bonos y tarjetas regalo.',
+  avisoTexto: 'En Cobros cobras citas y controlas el arqueo. En Gastos apuntas y consultas los costes del salón.',
   secciones: [
     {
       titulo: 'Cobrar una cita',
@@ -25,6 +25,10 @@ export const manualCaja: ManualContent = {
     {
       titulo: 'Presupuestos y cobros online',
       texto: 'Los presupuestos aceptados aparecen aquí como pendientes, con su propio botón "Cobrar". En "Cobros online de hoy" ves lo pagado por enlace o señal, con la opción de "Reembolsar" si hace falta.',
+    },
+    {
+      titulo: 'Gastos del salón',
+      texto: 'La pestaña "Gastos" es el lugar para registrar alquiler, compras y otros costes. Puedes consultar meses anteriores y añadir un gasto fijo o variable. Informes utiliza esos mismos datos para calcular el resultado del periodo, sin un segundo formulario de edición.',
     },
     {
       titulo: 'Registros descargables',

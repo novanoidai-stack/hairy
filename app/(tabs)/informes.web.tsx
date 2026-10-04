@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { DemoSpotlight } from '@/components/ui/DemoSpotlight';
 import { withClientDataGate } from '@/components/PrivacyGateOverlay';
 import { LiquidacionesSection } from '@/components/informes/LiquidacionesSection';
-import { GastosSection } from '@/components/informes/GastosSection';
 import { ControlHorarioSection } from '@/components/informes/ControlHorarioSection.web';
 import { ProductosVendidosSection } from '@/components/informes/ProductosVendidosSection';
 import { FacturasRegistroSection } from '@/components/informes/FacturasRegistroSection';
@@ -364,6 +364,7 @@ function descargarCSV(filename: string, headers: string[], rows: string[][]) {
 // Component
 // ---------------------------------------------------------------------------
 function InformesScreen() {
+  const router = useRouter();
   const { isMobile, isTablet } = useResponsive();
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista('informes');
@@ -3291,13 +3292,19 @@ SIEMPRE debe llevar el texto del informe: nunca termines con una respuesta vacia
                       padding: '8px 10px',
                     }}>
                       No hay ningun gasto apuntado en este periodo, asi que el
-                      resultado es igual a los ingresos. Apuntalos abajo y esta
-                      cifra empezara a decir algo.
+                      resultado es igual a los ingresos. Regístralos en Caja › Gastos
+                      para que esta cifra refleje los costes del salón.
                     </div>
                   )}
                 </div>
 
-                <GastosSection negocioId={negocioId} onGastosChange={cargar} customInicio={desde.toISOString()} customFin={hasta.toISOString()} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', padding: '14px 16px', marginBottom: 16, background: TOKENS.bgCard, border: `1px solid ${TOKENS.border}`, borderRadius: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: TOKENS.text }}>Gastos del periodo: {fmtEur(totalGastos)} €</div>
+                    <div style={{ fontSize: 12, color: TOKENS.textSec, marginTop: 3 }}>El registro de gastos se gestiona en Caja › Gastos.</div>
+                  </div>
+                  <button type="button" onClick={() => router.push('/(tabs)/caja?seccion=gastos' as never)} style={{ padding: '9px 13px', background: TOKENS.primary, color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Abrir gastos</button>
+                </div>
                 <ProductosVendidosSection
                   negocioId={negocioId}
                   desde={desde}

@@ -7,7 +7,7 @@ export const manualInformes: ManualContent = {
   secciones: [
     {
       titulo: 'Elegir el periodo',
-      texto: 'Los botones de arriba a la derecha ("Hoy", "Semana", "Mes", "3 Meses" y "Anual") cambian el rango: los KPIs y las gráficas se recalculan sobre él. El eje de tiempo de las gráficas se ajusta solo (Hoy va por horas, Semana y Mes por días, 3 Meses por semanas y Anual por meses), así que no hay un segundo filtro que cuadrar. Dos excepciones: los bloques de gastos y de liquidaciones trabajan siempre por meses con su propio selector, y la sección de fidelización usa 13 meses de historial pase lo que pase con este filtro, porque el ciclo de visitas de un cliente no cabe en una semana.',
+      texto: 'Los botones de arriba a la derecha ("Hoy", "Semana", "Mes", "3 Meses" y "Anual") cambian el rango: los KPIs y las gráficas se recalculan sobre él. El eje de tiempo de las gráficas se ajusta solo. Liquidaciones trabaja por meses con su propio selector, y fidelización usa 13 meses de historial para cubrir el ciclo de visitas.',
       captura: '/manuals/informes/kpis.png',
       highlight: { top: '11%', left: '57%', width: '40%', height: '5%' },
     },
@@ -33,7 +33,7 @@ export const manualInformes: ManualContent = {
     },
     {
       titulo: 'Gastos del negocio',
-      texto: 'En el bloque de gastos registras los fijos y variables de cada mes. Son los que convierten los ingresos en margen real, así que sin ellos el margen que ves está incompleto.',
+      texto: 'El resultado del periodo descuenta los gastos registrados en Caja › Gastos. Desde aquí puedes ver el total y abrir esa pestaña para añadir o consultar los costes; solo hay un lugar de edición.',
     },
     {
       titulo: 'Control horario',
