@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { useLocalSearchParams } from 'expo-router';
+import { paramDeEnlaceWhatsapp } from '@/lib/enlacesWhatsapp';
 
 // Este componente ahora redirige al portal principal con el flag ?action=review
 // El nuevo diseño del portal incluye el formulario de reseñas embebido en la vista del salón.
 export default function ResenaRedirect() {
   const params = useLocalSearchParams<{ slug: string }>();
-  const slug = String(params.slug || '');
+  const slug = paramDeEnlaceWhatsapp(params.slug);
 
   useEffect(() => {
     if (slug && typeof window !== 'undefined') {

@@ -9,6 +9,7 @@ import {
   type CitaPublica, type SlotDisponible,
 } from '@/lib/reservaPublica';
 import { categoryColorHex } from '@/lib/categoryColors';
+import { paramDeEnlaceWhatsapp } from '@/lib/enlacesWhatsapp';
 
 // ---------------------------------------------------------------------------
 // Pagina "gestiona tu cita" (/app/cita/[id]?s=<slug>). Es el destino del enlace
@@ -105,7 +106,7 @@ type Step = 'phone' | 'view' | 'confirmCancel' | 'reschedule' | 'cancelled' | 'r
 
 export default function GestionCitaWeb() {
   const params = useLocalSearchParams<{ id: string; s?: string; propuesta?: string }>();
-  const citaId = String(params.id || '');
+  const citaId = paramDeEnlaceWhatsapp(params.id);
   const slug = String(params.s || '');
   // Fase 3: enlace de propuesta de cambio de hora. Cuando llega por
   // ?propuesta=<uuid>, la pagina se vuelve una pantalla de Aceptar/Rechazar el

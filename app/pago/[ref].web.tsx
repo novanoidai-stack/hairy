@@ -3,6 +3,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { MechaMark } from '@/components/ui/MechaMark';
 import { supabase } from '@/lib/supabase';
 import { irARedsys } from '@/lib/redsysRedirect';
+import { paramDeEnlaceWhatsapp } from '@/lib/enlacesWhatsapp';
 
 // ---------------------------------------------------------------------------
 // Pagina de pago de la senal (/app/pago/[ref], ref = token opaco de cita_pago_enlaces,
@@ -43,7 +44,7 @@ function Lock({ size = 16, color = T.text }: { size?: number; color?: string }) 
 
 export default function PagoSenalWeb() {
   const params = useLocalSearchParams<{ ref: string }>();
-  const token = String(params.ref || '');
+  const token = paramDeEnlaceWhatsapp(params.ref);
   const [busy, setBusy] = useState(false);
   const [estado, setEstado] = useState<'idle' | 'paid' | 'error'>('idle');
   const [err, setErr] = useState('');
