@@ -30,8 +30,12 @@ export const manualCampanas: ManualContent = {
       texto: 'En "Tus campañas" ves las que ya has creado con su canal, número de destinatarios y estado. Mientras siga en borrador o encolada puedes cancelarla; una vez enviada, ya no.',
     },
     {
+      titulo: 'Historial de mensajes',
+      texto: 'La pestaña "Historial de mensajes" reúne todo lo que tu salón ha mandado a sus clientas: confirmaciones, recordatorios, peticiones de reseña, enlaces de señal, mensajes de campaña y avisos de la lista de espera. Puedes filtrar por tipo y buscar por nombre o teléfono. Cada mensaje dice si se envió, si llegó, si lo leyó o, si no llegó, por qué. De los mensajes automáticos ves de qué cita iban; de las campañas, el texto que se envió. Se registra desde el 11 de septiembre de 2026. Esta pestaña está también en el plan Esencial.',
+    },
+    {
       titulo: 'Quién puede usarlo',
-      texto: 'Las campañas solo las gestiona el propietario o la dirección del salón; el resto del equipo no ve esta pantalla.',
+      texto: 'Las campañas y el historial solo los ve el propietario o la dirección del salón; el resto del equipo no ve esta pantalla.',
     },
   ],
 };

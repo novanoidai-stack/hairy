@@ -68,7 +68,7 @@ const NAV_ITEMS: { label: string; labelKey: string; icon: string; activeIcon: st
   
   { label: 'Clientes', labelKey: 'nav_clientes', icon: 'people-outline', activeIcon: 'people', href: '/(tabs)/clientes', cap: 'clientes.ver', group: 'CRM & Marketing' },
   { label: 'Bandeja', labelKey: 'nav_bandeja', icon: 'mail-outline', activeIcon: 'mail', href: '/(tabs)/bandeja', group: 'CRM & Marketing' },
-  { label: 'Campañas', labelKey: 'nav_campanas', icon: 'megaphone-outline', activeIcon: 'megaphone', href: '/(tabs)/campanas', cap: 'informes.ver', plan: 'campanas', group: 'CRM & Marketing' },
+  { label: 'Campañas', labelKey: 'nav_campanas', icon: 'megaphone-outline', activeIcon: 'megaphone', href: '/(tabs)/campanas', cap: 'informes.ver', plan: 'recordatorios', group: 'CRM & Marketing' },
   
   { label: 'Presupuestos', labelKey: 'nav_presupuestos', icon: 'document-text-outline', activeIcon: 'document-text', href: '/(tabs)/presupuestos', group: 'Gestión' },
   { label: 'Equipo', labelKey: 'nav_equipo', icon: 'person-outline', activeIcon: 'person', href: '/(tabs)/equipo', cap: 'equipo.ver', group: 'Gestión' },

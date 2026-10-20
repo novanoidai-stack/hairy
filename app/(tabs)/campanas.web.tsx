@@ -15,7 +15,8 @@ import { usePaginaManualVista } from '@/lib/hooks/usePaginaManualVista';
 import { manualCampanas } from '@/lib/manuals/campanas';
 import { AvisoPrimeraVisita } from '@/components/manuals/AvisoPrimeraVisita.web';
 import { ManualPanel } from '@/components/manuals/ManualPanel.web';
-import { withPlanGate } from '@/components/PlanGateOverlay';
+import { withPlanGate, usePlan } from '@/components/PlanGateOverlay';
+import { HistorialMensajes } from '@/components/campanas/HistorialMensajes.web';
 
 const T = {
   bg: '#f6f1ea', panel: '#fffdfb', card: '#ffffff', cardHi: '#fbf6f0',
@@ -114,6 +115,14 @@ function CampanasScreen() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showManualPanel, setShowManualPanel] = useState(false);
   const paginaManual = usePaginaManualVista('campanas');
+  // La pantalla entra en Esencial por el historial (los recordatorios tambien
+  // salen en Esencial); crear campanas sigue siendo de Estudio.
+  const planCampanas = usePlan('campanas');
+  const puedeCampanas = planCampanas.permitido;
+  const [pestana, setPestana] = useState<'nueva' | 'historial'>('nueva');
+  useEffect(() => {
+    if (!planCampanas.cargando && !planCampanas.permitido) setPestana('historial');
+  }, [planCampanas.cargando, planCampanas.permitido]);
 
   // Una sola columna en movil y tablet; en escritorio, formulario + panel de
   // envio en paralelo, que es lo que evita el scroll infinito de antes.
@@ -131,11 +140,11 @@ function CampanasScreen() {
   const cargarCampanas = useCallback(async () => {
     try { setCampanas(await listarCampanas()); } catch { /* la lista es secundaria */ }
   }, []);
-  useEffect(() => { if (esGestor) void cargarCampanas(); }, [esGestor, cargarCampanas]);
+  useEffect(() => { if (esGestor && puedeCampanas) void cargarCampanas(); }, [esGestor, puedeCampanas, cargarCampanas]);
 
   // Conteo en vivo (debounced) al cambiar canal o segmento.
   useEffect(() => {
-    if (!esGestor) return;
+    if (!esGestor || !puedeCampanas) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     setContando(true);
     debounceRef.current = setTimeout(async () => {
@@ -148,7 +157,7 @@ function CampanasScreen() {
       finally { setContando(false); }
     }, 400);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [canal, seg, esGestor]);
+  }, [canal, seg, esGestor, puedeCampanas]);
 
   const setSegNum = (k: keyof SegmentoCriterios) => (v: string | number) =>
     setSeg((prev) => ({ ...prev, [k]: v === '' ? undefined : Number(v) }));
@@ -298,6 +307,30 @@ function CampanasScreen() {
           />
         )}
 
+        <div role="tablist" aria-label="Secciones de Campañas" style={{ display: 'flex', alignSelf: 'start', justifySelf: 'start', background: T.card, borderRadius: 10, padding: 3, border: `1px solid ${T.border}` }}>
+          {([['nueva', 'Nueva campaña'], ['historial', 'Historial de mensajes']] as const).map(([k, label]) => {
+            const on = pestana === k;
+            return (
+              <button key={k} type="button" role="tab" aria-selected={on} onClick={() => setPestana(k)}
+                style={{ padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: on ? 700 : 500, background: on ? T.primary : 'transparent', color: on ? '#fff' : T.textSec, transition: 'all 0.2s ease' }}>
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {pestana === 'historial' && <HistorialMensajes isMobile={isMobile} />}
+
+        {pestana === 'nueva' && !planCampanas.cargando && !puedeCampanas && (
+          <Bloque titulo="Las campañas entran en el plan Estudio" desc="Con tu plan puedes ver aquí todo lo que tu salón ya ha enviado.">
+            <button className="m-btn-secondary" onClick={() => setPestana('historial')}
+              style={{ padding: '9px 14px', borderRadius: 10, border: `1.5px solid ${T.border}`, background: T.panel, color: T.textSec, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              Ver el historial de mensajes
+            </button>
+          </Bloque>
+        )}
+
+        {pestana === 'nueva' && puedeCampanas && (<>
         <div aria-label="Pasos para preparar la campaña" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '10px 12px', border: `1px solid ${T.border}`, borderRadius: 12, background: T.card }}>
           {['1 · Nombre y canal', '2 · Destinatarias', '3 · Mensaje', '4 · Revisión y envío'].map((paso) => (
             <span key={paso} style={{ padding: '6px 10px', borderRadius: 8, background: T.cardHi, color: T.textSec, fontSize: 12, fontWeight: 700 }}>{paso}</span>
@@ -394,7 +427,7 @@ function CampanasScreen() {
           {dosColumnas && panelEnvio}
         </div>
 
-        {/* Historial, a lo ancho */}
+        {/* Campanas creadas, a lo ancho */}
         <Bloque titulo="Tus campañas" desc="Las encoladas se pueden cancelar antes de que salgan.">
           {campanas.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '26px 16px', border: `1px dashed ${T.border}`, borderRadius: 12, color: T.textTer, fontSize: 13 }}>
@@ -426,6 +459,7 @@ function CampanasScreen() {
             </div>
           )}
         </Bloque>
+        </>)}
       </div>
 
       {showManualPanel && (
@@ -458,10 +492,10 @@ function Header({ onBack, isMobile, onManual }: { onBack: () => void; isMobile: 
             </button>
           )}
         </h1>
-        <div style={{ fontSize: 12.5, color: T.textTer }}>Reactiva clientas y difunde ofertas</div>
+        <div style={{ fontSize: 12.5, color: T.textTer }}>Reactiva clientas, difunde ofertas y revisa lo enviado</div>
       </div>
     </div>
   );
 }
 
-export default withPlanGate(CampanasScreen, 'campanas');
+export default withPlanGate(CampanasScreen, 'recordatorios');
