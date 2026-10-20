@@ -4,6 +4,7 @@
 // historial_mensajes (solo owner/admin, el salon sale de la sesion). Los
 // automaticos no guardan su texto: aqui se resumen a partir de la cita.
 
+import { format, parseISO } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { reportarError } from '@/lib/reportarError';
 
@@ -27,6 +28,8 @@ export interface MensajeHistorial {
   texto: string | null;
   hueco_fecha: string | null;
   hueco_hora: string | null;
+  // Solo si la agenda la puede abrir (ni borrada ni cancelada).
+  cita_id: string | null;
 }
 
 export interface PaginaHistorial {
@@ -105,4 +108,11 @@ export function resumenMensaje(m: MensajeHistorial): string {
   if (!m.cita_inicio) return `${que} de una cita que ya no existe`;
   const detalle = [m.servicio, m.profesional ? `con ${m.profesional}` : null].filter(Boolean).join(' ');
   return `${que} de la cita del ${fmtCita.format(new Date(m.cita_inicio))}${detalle ? ` · ${detalle}` : ''}`;
+}
+
+/** Enlace a la agenda en el dia de la cita con su ficha abierta (mismo deep-link
+ *  que usa la pagina de Citas). Null si el mensaje no va ligado a una cita viva. */
+export function rutaCita(m: MensajeHistorial): string | null {
+  if (!m.cita_id || !m.cita_inicio) return null;
+  return `/(tabs)?fecha=${format(parseISO(m.cita_inicio), 'yyyy-MM-dd')}&cita=${m.cita_id}`;
 }

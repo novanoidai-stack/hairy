@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { mensajeDeError } from '@/lib/errores';
 import { STextInput } from '@/components/ui/SettingsAtoms';
 import {
   type MensajeHistorial, type TipoMensaje,
-  cargarHistorialMensajes, resumenMensaje, motivoFallo,
+  cargarHistorialMensajes, resumenMensaje, motivoFallo, rutaCita,
   TIPO_MENSAJE_META, ESTADO_MENSAJE_META,
 } from '@/lib/historialMensajes';
 
@@ -29,6 +30,7 @@ function telefonoVisible(c: string | null): string {
 /** Todo lo que el salon ha mandado: automaticos de cita, campanas y avisos de
  *  lista de espera. Solo lectura, paginado de 50 en 50. */
 export function HistorialMensajes({ isMobile }: { isMobile: boolean }) {
+  const router = useRouter();
   const [tipo, setTipo] = useState<TipoMensaje | null>(null);
   const [busqueda, setBusqueda] = useState('');
   const [buscar, setBuscar] = useState('');
@@ -120,6 +122,7 @@ export function HistorialMensajes({ isMobile }: { isMobile: boolean }) {
             const estado = ESTADO_MENSAJE_META[m.estado];
             const motivo = motivoFallo(m);
             const resumen = resumenMensaje(m);
+            const ruta = rutaCita(m);
             return (
               <div key={m.id} style={{
                 display: 'grid', alignItems: 'center', gap: isMobile ? 4 : 14,
@@ -149,6 +152,12 @@ export function HistorialMensajes({ isMobile }: { isMobile: boolean }) {
                 <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: estado.color }}>{estado.label}</div>
                   {motivo && <div style={{ fontSize: 11, color: T.textTer, marginTop: 2 }}>{motivo}</div>}
+                  {ruta && (
+                    <button type="button" className="m-btn-secondary" onClick={() => router.push(ruta as never)}
+                      style={{ marginTop: 6, padding: '5px 10px', borderRadius: 8, border: `1.5px solid ${T.border}`, background: T.panel, color: T.textSec, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      Ver cita
+                    </button>
+                  )}
                 </div>
               </div>
             );
